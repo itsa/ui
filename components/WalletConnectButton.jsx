@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa/utils';
-import { Button, Link, Box, Popover, Backdrop, makeStyles } from '@material-ui/core';
+import { Button, Link, Box, Select, MenuItem, Popover, Backdrop, makeStyles } from '@material-ui/core';
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import FiberManualRecord from '@material-ui/icons/FiberManualRecord';
 import clsx from 'clsx';
@@ -323,6 +323,7 @@ const generateBoxStyles = makeStyles(theme => {
 			display: 'flex',
 			flexDirection: 'column',
 			textAlign: 'center',
+			zIndex: 2,
 		},
 		innerBoxButtonStyle: {
 			backgroundColor: theme?.palette?.text?.primary || '#000000',
@@ -438,6 +439,16 @@ const generateBoxStyles = makeStyles(theme => {
 				marginLeft: '0.4rem',
 			},
 		},
+		select: {
+			width: '100%',
+		},
+		selectPaper: {
+			backgroundColor: '#000',
+		},
+		selectRoot: {
+			paddingTop: '0.6rem',
+			paddingBottom: '0.6rem',
+		},
 	};
 });
 
@@ -498,12 +509,14 @@ const WalletConnectButton = props => {
 		connect,
 		disconnect,
 		installed: metamaskInstalled,
+		switchToNetwork,
 	} = useMetamask();
 	const timeout = useRef();
 	const metamaskBoxRef = useRef();
 	const metamaskBoxOutsideRef = useRef();
 	const copyContainerRef = useRef();
 	const [popupId, setPopupId] = useState();
+	const [selectedNetwork, setSelectNetwork] = useState('');
 	const validChainIds = Array.isArray(chainId) ? chainId : [chainId];
 	const wrongNetwork = !validChainIds.includes(mmChainId);
 	const isConnected = !wrongNetwork && address;
@@ -580,6 +593,12 @@ const WalletConnectButton = props => {
 		setPopupId(null);
 	};
 
+	const handleNetworkChange = e => {
+		const value = e.target.value;
+		setSelectNetwork(value);
+		switchToNetwork(value);
+	}
+
 	useEffect(() => {
 		return () => {
 			clearTimeout(timeout.current);
@@ -597,6 +616,12 @@ const WalletConnectButton = props => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	useEffect(() => {
+		if(mmChainId){
+			setSelectNetwork(mmChainId)
+		}
+	}, [mmChainId]);
 
 	// Box style connected:
 	if (isConnected) {
@@ -630,6 +655,12 @@ const WalletConnectButton = props => {
 		}
 		label = wrongNetwork ? labelWrongNetwork : labelDisconnect;
 
+		const menuItems = Object.keys(NETWORK_NAMES).map(chainid => {
+			const name = NETWORK_NAMES[chainid];
+			const value = parseInt(chainid, 10);
+			return (<MenuItem value={value} key={name}>{name}</MenuItem>)
+		});
+
 		const popoverCopyAddressContent = (
 			<Popover
 				id={popupId}
@@ -649,12 +680,31 @@ const WalletConnectButton = props => {
 			</Popover>
 		);
 
+	const selectNetwork = (
+			<Box>
+				<Select
+					value={selectedNetwork}
+					onChange={handleNetworkChange}
+					MenuProps={{ classes: { paper: boxClasses.selectPaper, },
+						variant: 'menu'
+					}}
+					className={boxClasses.select}
+					classes={{
+						root: boxClasses.selectRoot,
+					}}
+					variant="outlined"
+					>
+					{menuItems}
+				</Select>
+			</Box>
+		);
+
 		connectedBox = (
 			<div className={clsx(boxClasses.root, 'metamask-connected', className)}>
 				<div className={classNameInnerBox} ref={metamaskBoxRef}>
 					<MetamaskLogo className={boxClasses.iconConnected} />
 					{metamaskText}
-					{network}
+					{selectNetwork}
 					<p className={boxClasses.addresDescription}>{addressText}</p>
 					<div className={boxClasses.iconBox}>
 						<div
