@@ -11,7 +11,6 @@ import {
 	FileCopyOutlined as FileCopyOutlinedIcon,
 	LaunchOutlined as LaunchOutlinedIcon,
 } from '@material-ui/icons';
-import { NETWORK_NAMES, EXPLORER_URLS } from 'config/constants';
 
 const NOOP = () => {};
 
@@ -481,6 +480,7 @@ const WalletConnectButton = props => {
 		disableElevation,
 		disableFocusRipple,
 		disableRipple,
+		explorerUrls,
 		labelAddressCopied,
 		labelConnectMetamask,
 		labelConnectWallet,
@@ -493,6 +493,7 @@ const WalletConnectButton = props => {
 		labelViewExplorer,
 		labelWrongNetwork,
 		metamaskNativeAppUrl,
+		networkNames,
 		onAddressCopied,
 		onConnect,
 		onDisconnect,
@@ -520,7 +521,6 @@ const WalletConnectButton = props => {
 	const validChainIds = Array.isArray(chainId) ? chainId : [chainId];
 	const wrongNetwork = !validChainIds.includes(mmChainId);
 	const isConnected = !wrongNetwork && address;
-	const networkName = NETWORK_NAMES[mmChainId]
 	const boxClasses = generateBoxStyles(props);
 	let connectedBox;
 	let closedFromOutside = false;
@@ -600,10 +600,10 @@ const WalletConnectButton = props => {
 	}
 
 	const getExplorerUrl = () => {
-		if (!mmChainId) {
-			return ''
+		if (!mmChainId || !explorerUrls[mmChainId]) {
+			return '';
 		}
-		return `${EXPLORER_URLS[mmChainId]}/address/${address}`
+		return `${explorerUrls[mmChainId]}/address/${address}`;
 	}
 
 	useEffect(() => {
@@ -662,8 +662,8 @@ const WalletConnectButton = props => {
 		}
 		label = wrongNetwork ? labelWrongNetwork : labelDisconnect;
 
-		const menuItems = Object.keys(NETWORK_NAMES).map(chainid => {
-			const name = NETWORK_NAMES[chainid];
+		const menuItems = Object.keys(networkNames).map(chainid => {
+			const name = networkNames[chainid];
 			const value = parseInt(chainid, 10);
 			return (<MenuItem value={value} key={name}>{name}</MenuItem>)
 		});
@@ -874,6 +874,7 @@ WalletConnectButton.defaultProps = {
 	buttonOpened: false,
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
+	explorerUrls: null,
 	labelAddressCopied: 'address is copied to clipboard',
 	labelConnectMetamask: 'connect to metamask',
 	labelConnectWallet: 'Connect wallet',
@@ -886,6 +887,7 @@ WalletConnectButton.defaultProps = {
 	labelViewExplorer: 'view in explorer',
 	labelWrongNetwork: 'wrong network',
 	metamaskNativeAppUrl: '',
+	networkNames: [],
 	onAddressCopied: NOOP,
 	onConnect: NOOP,
 	onDisconnect: NOOP,
@@ -904,6 +906,7 @@ WalletConnectButton.propTypes = {
 	className: PropTypes.string,
 	chainId: PropTypes.oneOfType([PropTypes.number, PropTypes.array]).isRequired,
 	copyPopupStyle: PropTypes.string,
+	explorerUrls: PropTypes.array,
 	labelAddressCopied: PropTypes.string,
 	labelConnectMetamask: PropTypes.string,
 	labelConnectWallet: PropTypes.string,
@@ -916,6 +919,7 @@ WalletConnectButton.propTypes = {
 	labelViewExplorer: PropTypes.string,
 	labelWrongNetwork: PropTypes.string,
 	metamaskNativeAppUrl: PropTypes.string,
+	networkNames: PropTypes.array,
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
 	onDisconnect: PropTypes.func,
