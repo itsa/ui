@@ -11,6 +11,7 @@ import {
 	FileCopyOutlined as FileCopyOutlinedIcon,
 	LaunchOutlined as LaunchOutlinedIcon,
 } from '@material-ui/icons';
+import { NETWORK_NAMES, EXPLORER_URLS } from 'config/constants';
 
 const NOOP = () => {};
 
@@ -480,7 +481,6 @@ const WalletConnectButton = props => {
 		disableElevation,
 		disableFocusRipple,
 		disableRipple,
-		explorerUrl,
 		labelAddressCopied,
 		labelConnectMetamask,
 		labelConnectWallet,
@@ -597,6 +597,13 @@ const WalletConnectButton = props => {
 		const value = e.target.value;
 		setSelectNetwork(value);
 		switchToNetwork(value);
+	}
+
+	const getExplorerUrl = () => {
+		if (!mmChainId) {
+			return ''
+		}
+		return `${EXPLORER_URLS[mmChainId]}/address/${address}`
 	}
 
 	useEffect(() => {
@@ -718,7 +725,7 @@ const WalletConnectButton = props => {
 							{copyText}
 						</div>
 
-						<Link href={explorerUrl} target="_blank">
+						<Link href={getExplorerUrl()} target="_blank">
 							<div className={boxClasses.iconBoxInner}>
 								<div component="span" mr={1} my="auto">
 									<LaunchOutlinedIcon />
@@ -867,7 +874,6 @@ WalletConnectButton.defaultProps = {
 	buttonOpened: false,
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
-	explorerUrl: 'https://etherscan.io',
 	labelAddressCopied: 'address is copied to clipboard',
 	labelConnectMetamask: 'connect to metamask',
 	labelConnectWallet: 'Connect wallet',
@@ -898,7 +904,6 @@ WalletConnectButton.propTypes = {
 	className: PropTypes.string,
 	chainId: PropTypes.oneOfType([PropTypes.number, PropTypes.array]).isRequired,
 	copyPopupStyle: PropTypes.string,
-	explorerUrl: PropTypes.string,
 	labelAddressCopied: PropTypes.string,
 	labelConnectMetamask: PropTypes.string,
 	labelConnectWallet: PropTypes.string,
