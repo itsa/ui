@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { isMobile, useMetamask, copyToClipboard } from '@itsa/utils';
+import { isMobile, useMetamask, copyToClipboard } from '@itsa.io/web3utils';
 import { Button, Link, Box, Select, MenuItem, Popover, Backdrop, makeStyles } from '@material-ui/core';
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import FiberManualRecord from '@material-ui/icons/FiberManualRecord';
