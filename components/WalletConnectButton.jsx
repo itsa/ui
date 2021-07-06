@@ -725,7 +725,7 @@ const WalletConnectButton = props => {
 							{copyText}
 						</div>
 
-						<Link href={getExplorerUrl()} target="_blank">
+						<Link href={getExplorerUrl()} target="_blank" rel="noopener">
 							<div className={boxClasses.iconBoxInner}>
 								<div component="span" mr={1} my="auto">
 									<LaunchOutlinedIcon />
