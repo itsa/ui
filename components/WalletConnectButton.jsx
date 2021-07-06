@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa/utils';
-import { Button, Link, Box, Popover, makeStyles } from '@material-ui/core';
+import { Button, Link, Box, Popover, Backdrop, makeStyles } from '@material-ui/core';
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import FiberManualRecord from '@material-ui/icons/FiberManualRecord';
 import clsx from 'clsx';
@@ -288,6 +288,10 @@ const generateConnectedStyles = makeStyles((/* theme */) => {
 			position: 'absolute',
 			right: 0,
 		},
+		backdrop: {
+			zIndex: 1,
+			backgroundColor: 'rgba(0, 0, 0, 0.9)',
+		},
 	};
 });
 
@@ -496,15 +500,17 @@ const WalletConnectButton = props => {
 		installed: metamaskInstalled,
 	} = useMetamask();
 	const timeout = useRef();
-	const dropDownBox = useRef();
+	const metamaskBoxRef = useRef();
+	const metamaskBoxOutsideRef = useRef();
 	const copyContainerRef = useRef();
-	const closedFromOutside = useRef(false);
 	const [popupId, setPopupId] = useState();
 	const validChainIds = Array.isArray(chainId) ? chainId : [chainId];
 	const wrongNetwork = !validChainIds.includes(mmChainId);
 	const isConnected = !wrongNetwork && address;
+	const networkName = NETWORK_NAMES[mmChainId]
 	const boxClasses = generateBoxStyles(props);
 	let connectedBox;
+	let closedFromOutside = false;
 	let button;
 	let buttonOpenNativeMetamask;
 	let label;
@@ -515,8 +521,8 @@ const WalletConnectButton = props => {
 			if (wrongNetwork) {
 				onWrongNetwork(chainId);
 			} else if (buttonStyle && address) {
-				if (closedFromOutside.current) {
-					closedFromOutside.current = false; // reset
+				if (closedFromOutside) {
+					closedFromOutside = false; // reset
 				} else {
 					props.onToggle(e);
 				}
@@ -540,22 +546,20 @@ const WalletConnectButton = props => {
 	};
 
 	const handleClickOutside = e => {
-		const dropDownNode = dropDownBox.current;
-		if (
-			buttonStyle &&
-			dropDownNode &&
-			!dropDownNode
-				.getAttribute('style')
-				.replace(/ /g, '')
-				.includes('display:none')
-		) {
+		const metamaskBoxNode = metamaskBoxRef.current;
+		const metamaskBoxOutsideNode = metamaskBoxOutsideRef.current;
+		if(buttonStyle
+		&& metamaskBoxNode
+		&& metamaskBoxOutsideNode) {
+			if(metamaskBoxNode.contains(e.target)) {
+				closedFromOutside = true;
+			}
 			// click outside the dropdown
-			// should have the same effect as toggling the button
-			closedFromOutside.current = true;
-			setTimeout(() => {
-				closedFromOutside.current = false;
-			}, 300);
-			onToggle(e);
+			if(metamaskBoxOutsideNode.contains(e.target)
+			&& !metamaskBoxNode.contains(e.target)) {
+				closedFromOutside = false;
+				onToggle(e);
+			}
 		}
 	};
 
@@ -576,13 +580,21 @@ const WalletConnectButton = props => {
 		setPopupId(null);
 	};
 
-	// make the select to close if clicked outside
 	useEffect(() => {
-		document.addEventListener('mousedown', handleClickOutside, true);
 		return () => {
 			clearTimeout(timeout.current);
-			document.removeEventListener('mousedown', handleClickOutside, true);
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	// make the select to close if clicked outside
+	useEffect(() => {
+		if(buttonStyle && !buttonOpened){
+			document.addEventListener('mousedown', handleClickOutside, true);
+			return () => {
+				document.removeEventListener('mousedown', handleClickOutside, true);
+			};
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -639,7 +651,7 @@ const WalletConnectButton = props => {
 
 		connectedBox = (
 			<div className={clsx(boxClasses.root, 'metamask-connected', className)}>
-				<div className={classNameInnerBox}>
+				<div className={classNameInnerBox} ref={metamaskBoxRef}>
 					<MetamaskLogo className={boxClasses.iconConnected} />
 					{metamaskText}
 					{network}
@@ -745,7 +757,11 @@ const WalletConnectButton = props => {
 				>
 					{label}
 				</Button>
-				<div className={btnClasses.dropdown} ref={dropDownBox} style={styles}>
+				<Backdrop
+				className={btnClasses.backdrop}
+				open={buttonOpened}
+				/>
+				<div className={btnClasses.dropdown} ref={metamaskBoxOutsideRef} style={styles}>
 					{connectedBox}
 				</div>
 			</div>
@@ -797,7 +813,7 @@ WalletConnectButton.defaultProps = {
 	addressChars: null,
 	addressCharsLeft: 5,
 	addressCharsRight: 5,
-	buttonStyle: true,
+	buttonStyle: false,
 	buttonOpened: false,
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
