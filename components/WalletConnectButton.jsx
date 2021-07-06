@@ -515,6 +515,7 @@ const WalletConnectButton = props => {
 	const timeout = useRef();
 	const metamaskBoxRef = useRef();
 	const metamaskBoxOutsideRef = useRef();
+	const closedFromOutside = useRef(false);
 	const copyContainerRef = useRef();
 	const [popupId, setPopupId] = useState();
 	const [selectedNetwork, setSelectNetwork] = useState('');
@@ -523,7 +524,6 @@ const WalletConnectButton = props => {
 	const isConnected = !wrongNetwork && address;
 	const boxClasses = generateBoxStyles(props);
 	let connectedBox;
-	let closedFromOutside = false;
 	let button;
 	let buttonOpenNativeMetamask;
 	let label;
@@ -534,8 +534,8 @@ const WalletConnectButton = props => {
 			if (wrongNetwork) {
 				onWrongNetwork(chainId);
 			} else if (buttonStyle && address) {
-				if (closedFromOutside) {
-					closedFromOutside = false; // reset
+				if (closedFromOutside.current) {
+					closedFromOutside.current = false; // reset
 				} else {
 					props.onToggle(e);
 				}
@@ -565,12 +565,12 @@ const WalletConnectButton = props => {
 		&& metamaskBoxNode
 		&& metamaskBoxOutsideNode) {
 			if(metamaskBoxNode.contains(e.target)) {
-				closedFromOutside = true;
+				closedFromOutside.current = true;
 			}
 			// click outside the dropdown
 			if(metamaskBoxOutsideNode.contains(e.target)
 			&& !metamaskBoxNode.contains(e.target)) {
-				closedFromOutside = false;
+				closedFromOutside.current = false;
 				onToggle(e);
 			}
 		}
@@ -906,7 +906,7 @@ WalletConnectButton.propTypes = {
 	className: PropTypes.string,
 	chainId: PropTypes.oneOfType([PropTypes.number, PropTypes.array]).isRequired,
 	copyPopupStyle: PropTypes.string,
-	explorerUrls: PropTypes.array,
+	explorerUrls: PropTypes.object,
 	labelAddressCopied: PropTypes.string,
 	labelConnectMetamask: PropTypes.string,
 	labelConnectWallet: PropTypes.string,
@@ -919,7 +919,7 @@ WalletConnectButton.propTypes = {
 	labelViewExplorer: PropTypes.string,
 	labelWrongNetwork: PropTypes.string,
 	metamaskNativeAppUrl: PropTypes.string,
-	networkNames: PropTypes.array,
+	networkNames: PropTypes.object,
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
 	onDisconnect: PropTypes.func,
