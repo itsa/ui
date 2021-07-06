@@ -606,13 +606,6 @@ const WalletConnectButton = props => {
 		return `${explorerUrls[mmChainId]}/address/${address}`;
 	}
 
-	useEffect(() => {
-		return () => {
-			clearTimeout(timeout.current);
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
 	// make the select to close if clicked outside
 	useEffect(() => {
 		if(buttonStyle && !buttonOpened){
@@ -621,6 +614,9 @@ const WalletConnectButton = props => {
 				document.removeEventListener('mousedown', handleClickOutside, true);
 			};
 		}
+		return () => {
+			clearTimeout(timeout.current);
+		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -688,7 +684,6 @@ const WalletConnectButton = props => {
 		);
 
 	const selectNetwork = (
-			<Box>
 				<Select
 					value={selectedNetwork}
 					onChange={handleNetworkChange}
@@ -703,7 +698,6 @@ const WalletConnectButton = props => {
 					>
 					{menuItems}
 				</Select>
-			</Box>
 		);
 
 		connectedBox = (
