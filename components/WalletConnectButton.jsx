@@ -611,6 +611,7 @@ const WalletConnectButton = props => {
 		if(buttonStyle && !buttonOpened){
 			document.addEventListener('mousedown', handleClickOutside, true);
 			return () => {
+    			clearTimeout(timeout.current);
 				document.removeEventListener('mousedown', handleClickOutside, true);
 			};
 		}
