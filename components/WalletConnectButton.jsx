@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa.io/web3utils';
-import { Button, Link, Box, Popover, makeStyles } from '@material-ui/core';
+import { Button, Link, Box, Select, MenuItem, Popover, Backdrop, makeStyles } from '@material-ui/core';
 import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
 import FiberManualRecord from '@material-ui/icons/FiberManualRecord';
 import clsx from 'clsx';
@@ -288,6 +288,10 @@ const generateConnectedStyles = makeStyles((/* theme */) => {
 			position: 'absolute',
 			right: 0,
 		},
+		backdrop: {
+			zIndex: 1,
+			backgroundColor: 'rgba(0, 0, 0, 0.9)',
+		},
 	};
 });
 
@@ -319,6 +323,7 @@ const generateBoxStyles = makeStyles(theme => {
 			display: 'flex',
 			flexDirection: 'column',
 			textAlign: 'center',
+			zIndex: 2,
 		},
 		innerBoxButtonStyle: {
 			backgroundColor: theme?.palette?.text?.primary || '#000000',
@@ -434,6 +439,16 @@ const generateBoxStyles = makeStyles(theme => {
 				marginLeft: '0.4rem',
 			},
 		},
+		select: {
+			width: '100%',
+		},
+		selectPaper: {
+			backgroundColor: '#000',
+		},
+		selectRoot: {
+			paddingTop: '0.6rem',
+			paddingBottom: '0.6rem',
+		},
 	};
 });
 
@@ -465,7 +480,7 @@ const WalletConnectButton = props => {
 		disableElevation,
 		disableFocusRipple,
 		disableRipple,
-		explorerUrl,
+		explorerUrls,
 		labelAddressCopied,
 		labelConnectMetamask,
 		labelConnectWallet,
@@ -478,6 +493,7 @@ const WalletConnectButton = props => {
 		labelViewExplorer,
 		labelWrongNetwork,
 		metamaskNativeAppUrl,
+		networkNames,
 		onAddressCopied,
 		onConnect,
 		onDisconnect,
@@ -494,12 +510,15 @@ const WalletConnectButton = props => {
 		connect,
 		disconnect,
 		installed: metamaskInstalled,
+		switchToNetwork,
 	} = useMetamask();
 	const timeout = useRef();
-	const dropDownBox = useRef();
-	const copyContainerRef = useRef();
+	const metamaskBoxRef = useRef();
+	const metamaskBoxOutsideRef = useRef();
 	const closedFromOutside = useRef(false);
+	const copyContainerRef = useRef();
 	const [popupId, setPopupId] = useState();
+	const [selectedNetwork, setSelectNetwork] = useState('');
 	const validChainIds = Array.isArray(chainId) ? chainId : [chainId];
 	const wrongNetwork = !validChainIds.includes(mmChainId);
 	const isConnected = !wrongNetwork && address;
@@ -540,22 +559,20 @@ const WalletConnectButton = props => {
 	};
 
 	const handleClickOutside = e => {
-		const dropDownNode = dropDownBox.current;
-		if (
-			buttonStyle &&
-			dropDownNode &&
-			!dropDownNode
-				.getAttribute('style')
-				.replace(/ /g, '')
-				.includes('display:none')
-		) {
+		const metamaskBoxNode = metamaskBoxRef.current;
+		const metamaskBoxOutsideNode = metamaskBoxOutsideRef.current;
+		if(buttonStyle
+		&& metamaskBoxNode
+		&& metamaskBoxOutsideNode) {
+			if(metamaskBoxNode.contains(e.target)) {
+				closedFromOutside.current = true;
+			}
 			// click outside the dropdown
-			// should have the same effect as toggling the button
-			closedFromOutside.current = true;
-			setTimeout(() => {
+			if(metamaskBoxOutsideNode.contains(e.target)
+			&& !metamaskBoxNode.contains(e.target)) {
 				closedFromOutside.current = false;
-			}, 300);
-			onToggle(e);
+				onToggle(e);
+			}
 		}
 	};
 
@@ -576,15 +593,39 @@ const WalletConnectButton = props => {
 		setPopupId(null);
 	};
 
+	const handleNetworkChange = e => {
+		const value = e.target.value;
+		setSelectNetwork(value);
+		switchToNetwork(value);
+	}
+
+	const getExplorerUrl = () => {
+		if (!mmChainId || !explorerUrls[mmChainId]) {
+			return '';
+		}
+		return `${explorerUrls[mmChainId]}/address/${address}`;
+	}
+
 	// make the select to close if clicked outside
 	useEffect(() => {
-		document.addEventListener('mousedown', handleClickOutside, true);
+		if(buttonStyle && !buttonOpened){
+			document.addEventListener('mousedown', handleClickOutside, true);
+			return () => {
+    			clearTimeout(timeout.current);
+				document.removeEventListener('mousedown', handleClickOutside, true);
+			};
+		}
 		return () => {
 			clearTimeout(timeout.current);
-			document.removeEventListener('mousedown', handleClickOutside, true);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	useEffect(() => {
+		if(mmChainId){
+			setSelectNetwork(mmChainId)
+		}
+	}, [mmChainId]);
 
 	// Box style connected:
 	if (isConnected) {
@@ -618,6 +659,12 @@ const WalletConnectButton = props => {
 		}
 		label = wrongNetwork ? labelWrongNetwork : labelDisconnect;
 
+		const menuItems = Object.keys(networkNames).map(chainid => {
+			const name = networkNames[chainid];
+			const value = parseInt(chainid, 10);
+			return (<MenuItem value={value} key={name}>{name}</MenuItem>)
+		});
+
 		const popoverCopyAddressContent = (
 			<Popover
 				id={popupId}
@@ -637,12 +684,29 @@ const WalletConnectButton = props => {
 			</Popover>
 		);
 
+	const selectNetwork = (
+				<Select
+					value={selectedNetwork}
+					onChange={handleNetworkChange}
+					MenuProps={{ classes: { paper: boxClasses.selectPaper, },
+						variant: 'menu'
+					}}
+					className={boxClasses.select}
+					classes={{
+						root: boxClasses.selectRoot,
+					}}
+					variant="outlined"
+					>
+					{menuItems}
+				</Select>
+		);
+
 		connectedBox = (
 			<div className={clsx(boxClasses.root, 'metamask-connected', className)}>
-				<div className={classNameInnerBox}>
+				<div className={classNameInnerBox} ref={metamaskBoxRef}>
 					<MetamaskLogo className={boxClasses.iconConnected} />
 					{metamaskText}
-					{network}
+					{selectNetwork}
 					<p className={boxClasses.addresDescription}>{addressText}</p>
 					<div className={boxClasses.iconBox}>
 						<div
@@ -656,7 +720,7 @@ const WalletConnectButton = props => {
 							{copyText}
 						</div>
 
-						<Link href={explorerUrl} target="_blank">
+						<Link href={getExplorerUrl()} target="_blank" rel="noopener">
 							<div className={boxClasses.iconBoxInner}>
 								<div component="span" mr={1} my="auto">
 									<LaunchOutlinedIcon />
@@ -745,7 +809,11 @@ const WalletConnectButton = props => {
 				>
 					{label}
 				</Button>
-				<div className={btnClasses.dropdown} ref={dropDownBox} style={styles}>
+				<Backdrop
+				className={btnClasses.backdrop}
+				open={buttonOpened}
+				/>
+				<div className={btnClasses.dropdown} ref={metamaskBoxOutsideRef} style={styles}>
 					{connectedBox}
 				</div>
 			</div>
@@ -797,11 +865,11 @@ WalletConnectButton.defaultProps = {
 	addressChars: null,
 	addressCharsLeft: 5,
 	addressCharsRight: 5,
-	buttonStyle: true,
+	buttonStyle: false,
 	buttonOpened: false,
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
-	explorerUrl: 'https://etherscan.io',
+	explorerUrls: null,
 	labelAddressCopied: 'address is copied to clipboard',
 	labelConnectMetamask: 'connect to metamask',
 	labelConnectWallet: 'Connect wallet',
@@ -814,6 +882,7 @@ WalletConnectButton.defaultProps = {
 	labelViewExplorer: 'view in explorer',
 	labelWrongNetwork: 'wrong network',
 	metamaskNativeAppUrl: '',
+	networkNames: [],
 	onAddressCopied: NOOP,
 	onConnect: NOOP,
 	onDisconnect: NOOP,
@@ -832,7 +901,7 @@ WalletConnectButton.propTypes = {
 	className: PropTypes.string,
 	chainId: PropTypes.oneOfType([PropTypes.number, PropTypes.array]).isRequired,
 	copyPopupStyle: PropTypes.string,
-	explorerUrl: PropTypes.string,
+	explorerUrls: PropTypes.object,
 	labelAddressCopied: PropTypes.string,
 	labelConnectMetamask: PropTypes.string,
 	labelConnectWallet: PropTypes.string,
@@ -845,6 +914,7 @@ WalletConnectButton.propTypes = {
 	labelViewExplorer: PropTypes.string,
 	labelWrongNetwork: PropTypes.string,
 	metamaskNativeAppUrl: PropTypes.string,
+	networkNames: PropTypes.object,
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
 	onDisconnect: PropTypes.func,
