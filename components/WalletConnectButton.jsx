@@ -1,16 +1,11 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa.io/web3utils';
-import { Button, Link, Box, Select, MenuItem, Popover, Backdrop, makeStyles } from '@material-ui/core';
-import ArrowDropDown from '@material-ui/icons/ArrowDropDown';
-import FiberManualRecord from '@material-ui/icons/FiberManualRecord';
-import clsx from 'clsx';
+import { Button, Link, Box, Select, MenuItem, IconButton, Popover, Backdrop, makeStyles } from '@material-ui/core';
+import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from '@material-ui/icons';
 import { toPairs } from 'lodash';
-import {
-	FileCopyOutlined as FileCopyOutlinedIcon,
-	LaunchOutlined as LaunchOutlinedIcon,
-} from '@material-ui/icons';
 
 const NOOP = () => {};
 
@@ -277,16 +272,27 @@ const generateDisconnectedStyles = makeStyles((/* theme */) => {
 	};
 });
 
-const generateConnectedStyles = makeStyles((/* theme */) => {
+const generateConnectedStyles = makeStyles(theme => {
 	return {
 		root: {
 			textTransform: 'none',
 			position: 'relative',
 		},
 		dropdown: {
-			width: '12rem',
+			position: 'fixed',
+			display: 'flex',
+			top:0,
+			left:0,
+			width:'100%',
+			height:'100%',
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'column',
+		},
+		iconButton: {
 			position: 'absolute',
-			right: 0,
+			top: theme.spacing(1),
+			right: theme.spacing(1),
 		},
 		backdrop: {
 			zIndex: 1,
@@ -320,23 +326,11 @@ const generateStartIconStyles = makeStyles(theme => {
 const generateBoxStyles = makeStyles(theme => {
 	return {
 		root: {
+			position: 'relative',
 			display: 'flex',
 			flexDirection: 'column',
 			textAlign: 'center',
 			zIndex: 2,
-		},
-		innerBoxButtonStyle: {
-			backgroundColor: theme?.palette?.text?.primary || '#000000',
-			color: theme?.palette?.background?.light || '#FFFFFF',
-			borderRadius: '4px',
-			padding: '1.25rem',
-		},
-		innerBox: {
-			backgroundColor: theme?.palette?.text?.primary || '#000000',
-			color: theme?.palette?.background?.light || '#FFFFFF',
-			borderRadius: '6px',
-			padding: '3rem 0.4rem',
-			minWidth: '25rem',
 		},
 		icon: {
 			width: '4rem',
@@ -472,6 +466,8 @@ const WalletConnectButton = props => {
 		addressCharsLeft,
 		addressCharsRight,
 		buttonStyle,
+		shortAddress,
+		shortTextIcon,
 		buttonOpened,
 		chainId,
 		className,
@@ -515,7 +511,6 @@ const WalletConnectButton = props => {
 	const timeout = useRef();
 	const metamaskBoxRef = useRef();
 	const metamaskBoxOutsideRef = useRef();
-	const closedFromOutside = useRef(false);
 	const copyContainerRef = useRef();
 	const [popupId, setPopupId] = useState();
 	const [selectedNetwork, setSelectNetwork] = useState('');
@@ -534,11 +529,7 @@ const WalletConnectButton = props => {
 			if (wrongNetwork) {
 				onWrongNetwork(chainId);
 			} else if (buttonStyle && address) {
-				if (closedFromOutside.current) {
-					closedFromOutside.current = false; // reset
-				} else {
 					props.onToggle(e);
-				}
 			} else {
 				await connect();
 				onConnect(e);
@@ -564,13 +555,9 @@ const WalletConnectButton = props => {
 		if(buttonStyle
 		&& metamaskBoxNode
 		&& metamaskBoxOutsideNode) {
-			if(metamaskBoxNode.contains(e.target)) {
-				closedFromOutside.current = true;
-			}
 			// click outside the dropdown
 			if(metamaskBoxOutsideNode.contains(e.target)
 			&& !metamaskBoxNode.contains(e.target)) {
-				closedFromOutside.current = false;
 				onToggle(e);
 			}
 		}
@@ -597,6 +584,7 @@ const WalletConnectButton = props => {
 		const value = e.target.value;
 		setSelectNetwork(value);
 		switchToNetwork(value);
+		props.onToggle(e);
 	}
 
 	const getExplorerUrl = () => {
@@ -611,7 +599,7 @@ const WalletConnectButton = props => {
 		if(buttonStyle && !buttonOpened){
 			document.addEventListener('mousedown', handleClickOutside, true);
 			return () => {
-    			clearTimeout(timeout.current);
+    		clearTimeout(timeout.current);
 				document.removeEventListener('mousedown', handleClickOutside, true);
 			};
 		}
@@ -630,24 +618,24 @@ const WalletConnectButton = props => {
 	// Box style connected:
 	if (isConnected) {
 		let network;
-		let classNameInnerBox;
 		let classNameButton;
 		let metamaskText;
-		let addressText;
+		let addressText = address;
 		let copyText;
 		let viewText;
 		if (buttonStyle) {
-			classNameInnerBox = boxClasses.innerBoxButtonStyle;
 			classNameButton = boxClasses.btnButtonStyle;
+		} else {
+			classNameButton = boxClasses.btn;
+		}
+		if(shortAddress) {
 			addressText = shortenAddress(
 				address,
 				addressChars ?? addressCharsLeft,
 				addressChars ?? addressCharsRight,
 			);
-		} else {
-			classNameInnerBox = boxClasses.innerBox;
-			classNameButton = boxClasses.btn;
-			addressText = address;
+		}
+		if(!shortTextIcon){
 			copyText = <span>{labelCopy}</span>;
 			viewText = <span>{labelViewExplorer}</span>;
 		}
@@ -702,43 +690,41 @@ const WalletConnectButton = props => {
 		);
 
 		connectedBox = (
-			<div className={clsx(boxClasses.root, 'metamask-connected', className)}>
-				<div className={classNameInnerBox} ref={metamaskBoxRef}>
-					<MetamaskLogo className={boxClasses.iconConnected} />
-					{metamaskText}
-					{selectNetwork}
-					<p className={boxClasses.addresDescription}>{addressText}</p>
-					<div className={boxClasses.iconBox}>
-						<div
-							className={boxClasses.iconBoxInner}
-							onClick={copyAddress}
-							ref={copyContainerRef}
-						>
-							<div component="span" mr={1} my="auto">
-								<FileCopyOutlinedIcon />
-							</div>
-							{copyText}
-						</div>
-
-						<Link href={getExplorerUrl()} target="_blank" rel="noopener">
-							<div className={boxClasses.iconBoxInner}>
-								<div component="span" mr={1} my="auto">
-									<LaunchOutlinedIcon />
-								</div>
-								{viewText}
-							</div>
-						</Link>
-					</div>
-					<Button
-						className={classNameButton}
-						disableElevation
-						onClick={handleDisconnect}
+			<>
+				<MetamaskLogo className={boxClasses.iconConnected} />
+				{metamaskText}
+				{selectNetwork}
+				<p className={boxClasses.addresDescription}>{addressText}</p>
+				<div className={boxClasses.iconBox}>
+					<div
+						className={boxClasses.iconBoxInner}
+						onClick={copyAddress}
+						ref={copyContainerRef}
 					>
-						{label}
-					</Button>
+						<div component="span" mr={1} my="auto">
+							<FileCopyOutlinedIcon />
+						</div>
+						{copyText}
+					</div>
+
+					<Link href={getExplorerUrl()} target="_blank" rel="noopener">
+						<div className={boxClasses.iconBoxInner}>
+							<div component="span" mr={1} my="auto">
+								<LaunchOutlinedIcon />
+							</div>
+							{viewText}
+						</div>
+					</Link>
 				</div>
-				{popoverCopyAddressContent}
-			</div>
+				<Button
+					className={classNameButton}
+					disableElevation
+					onClick={handleDisconnect}
+				>
+					{label}
+				</Button>
+			{popoverCopyAddressContent}
+			</>
 		);
 	}
 
@@ -777,12 +763,16 @@ const WalletConnectButton = props => {
 		const endIconClasses = generateEndIconStyles();
 		const startIconClasses = generateStartIconStyles();
 		if (!wrongNetwork && address) {
-			endIcon = <ArrowDropDown classes={safeClasses(endIconClasses)} />;
-			startIcon = <FiberManualRecord classes={safeClasses(startIconClasses)} />;
+			endIcon = <ArrowDropDownIcon classes={safeClasses(endIconClasses)} />;
+			startIcon = <FiberManualRecordIcon classes={safeClasses(startIconClasses)} />;
+		}
+
+		const handleCloseIcon = e => {
+			props.onToggle(e);
 		}
 
 		if (!buttonOpened || !isConnected) {
-			styles = { display: 'none' };
+			styles = {display: 'none'};
 		}
 
 		label = isConnected
@@ -794,7 +784,7 @@ const WalletConnectButton = props => {
 			: labelConnectWallet;
 
 		return (
-			<div className={btnClasses.root}>
+				<>
 				<Button
 					className={btnClasses.buttonStyleBtn}
 					classes={safeClasses(btnClasses)}
@@ -810,18 +800,29 @@ const WalletConnectButton = props => {
 					{label}
 				</Button>
 				<Backdrop
-				className={btnClasses.backdrop}
-				open={buttonOpened}
-				/>
-				<div className={btnClasses.dropdown} ref={metamaskBoxOutsideRef} style={styles}>
-					{connectedBox}
-				</div>
-			</div>
+					className={btnClasses.backdrop}
+					open={buttonOpened}
+					ref={metamaskBoxOutsideRef}
+				>
+					<div className={btnClasses.dropdown} style={styles}>
+						<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
+							<IconButton className={btnClasses.iconButton} onClick={handleCloseIcon}>
+								<CloseIcon />
+							</IconButton>
+							{connectedBox}
+						</div>
+					</div>
+				</Backdrop>
+			</>
 		);
 	}
 
 	if (isConnected) {
-		return connectedBox;
+		return (
+				<div className={clsx(boxClasses.root, 'metamask-connected', className)}>
+					{connectedBox}
+				</div>
+			);
 	}
 
 	let downloadMetamask;
@@ -829,7 +830,7 @@ const WalletConnectButton = props => {
 		downloadMetamask = (
 			<div className={boxClasses.downloadDescription}>
 				{labelNoMetamask}{' '}
-				<Link href="https://metamask.io/download.html">{labelDownload}</Link>
+				<Link href="https://metamask.io/download.html" target="_blank" rel="noreferrer noopener">{labelDownload}</Link>
 			</div>
 		);
 	}
@@ -850,12 +851,10 @@ const WalletConnectButton = props => {
 	);
 	return (
 		<div className={clsx(boxClasses.root, className)}>
-			<div className={boxClasses.innerBox}>
 				<MetamaskLogo className={boxClasses.icon} />
 				<p className={boxClasses.title}>{labelConnectWallet}</p>
 				<p className={boxClasses.description}>{labelGetStarted}</p>
 				{button}
-			</div>
 			{downloadMetamask}
 		</div>
 	);
@@ -867,6 +866,8 @@ WalletConnectButton.defaultProps = {
 	addressCharsRight: 5,
 	buttonStyle: false,
 	buttonOpened: false,
+	shortAddress: false,
+	shortTextIcon: false,
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
 	explorerUrls: null,
@@ -898,6 +899,8 @@ WalletConnectButton.propTypes = {
 	addressCharsRight: PropTypes.number,
 	buttonStyle: PropTypes.bool,
 	buttonOpened: PropTypes.bool,
+	shortAddress: PropTypes.bool,
+	shortTextIcon: PropTypes.bool,
 	className: PropTypes.string,
 	chainId: PropTypes.oneOfType([PropTypes.number, PropTypes.array]).isRequired,
 	copyPopupStyle: PropTypes.string,
