@@ -288,6 +288,7 @@ const generateConnectedStyles = makeStyles(theme => {
 			alignItems: 'center',
 			justifyContent: 'center',
 			flexDirection: 'column',
+			zIndex: 1,
 		},
 		iconButton: {
 			position: 'absolute',
@@ -295,8 +296,8 @@ const generateConnectedStyles = makeStyles(theme => {
 			right: theme.spacing(1),
 		},
 		backdrop: {
-			zIndex: 1,
 			backgroundColor: 'rgba(0, 0, 0, 0.9)',
+			zIndex: 1
 		},
 	};
 });
@@ -511,6 +512,7 @@ const WalletConnectButton = props => {
 	const timeout = useRef();
 	const metamaskBoxRef = useRef();
 	const metamaskBoxOutsideRef = useRef();
+	const closedFromOutside = useRef(false);
 	const copyContainerRef = useRef();
 	const [popupId, setPopupId] = useState();
 	const [selectedNetwork, setSelectNetwork] = useState('');
@@ -529,10 +531,16 @@ const WalletConnectButton = props => {
 			if (wrongNetwork) {
 				onWrongNetwork(chainId);
 			} else if (buttonStyle && address) {
+				if (closedFromOutside.current) {
+					closedFromOutside.current = false; // reset
+				} else {
 					props.onToggle(e);
+				}
 			} else {
-				await connect();
-				onConnect(e);
+				if(metamaskInstalled) { // connect if Metamask installed
+					await connect();
+					onConnect(e);
+				}
 			}
 		} catch (err) {
 			console.error(err);
@@ -542,6 +550,8 @@ const WalletConnectButton = props => {
 	const handleDisconnect = async e => {
 		e.currentTarget.blur();
 		try {
+			closedFromOutside.current = false;
+			props.onToggle(e);
 			await disconnect();
 		} catch (err) {
 			console.error(err);
@@ -554,12 +564,16 @@ const WalletConnectButton = props => {
 		const metamaskBoxOutsideNode = metamaskBoxOutsideRef.current;
 		if(buttonStyle
 		&& metamaskBoxNode
-		&& metamaskBoxOutsideNode) {
+		&& metamaskBoxOutsideNode
+		&& metamaskBoxOutsideNode.contains(e.target)
+		&& !metamaskBoxNode.contains(e.target)) {
 			// click outside the dropdown
-			if(metamaskBoxOutsideNode.contains(e.target)
-			&& !metamaskBoxNode.contains(e.target)) {
-				onToggle(e);
-			}
+			// should have the same effect as toggling the button
+			closedFromOutside.current = true;
+			setTimeout(() => {
+				closedFromOutside.current = false;
+			}, 300);
+			onToggle(e);
 		}
 	};
 
@@ -768,6 +782,7 @@ const WalletConnectButton = props => {
 		}
 
 		const handleCloseIcon = e => {
+			closedFromOutside.current = false;
 			props.onToggle(e);
 		}
 
@@ -802,17 +817,15 @@ const WalletConnectButton = props => {
 				<Backdrop
 					className={btnClasses.backdrop}
 					open={buttonOpened}
-					ref={metamaskBoxOutsideRef}
-				>
-					<div className={btnClasses.dropdown} style={styles}>
-						<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
-							<IconButton className={btnClasses.iconButton} onClick={handleCloseIcon}>
-								<CloseIcon />
-							</IconButton>
-							{connectedBox}
-						</div>
+				/>
+				<div className={btnClasses.dropdown} style={styles} ref={metamaskBoxOutsideRef}>
+					<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
+						<IconButton className={btnClasses.iconButton} onClick={handleCloseIcon}>
+							<CloseIcon />
+						</IconButton>
+						{connectedBox}
 					</div>
-				</Backdrop>
+				</div>
 			</>
 		);
 	}
