@@ -294,9 +294,10 @@ const generateConnectedStyles = makeStyles(theme => {
 			position: 'absolute',
 			top: theme.spacing(1),
 			right: theme.spacing(1),
+			color: theme?.palette?.grey[50] || '#FFFFFF',
 		},
+
 		backdrop: {
-			backgroundColor: 'rgba(0, 0, 0, 0.9)',
 			zIndex: 1
 		},
 	};
@@ -316,9 +317,11 @@ const generateEndIconStyles = makeStyles((/* theme */) => {
 const generateStartIconStyles = makeStyles(theme => {
 	return {
 		root: {
-			width: '0.8em',
-			height: '0.8em',
-			color: theme?.palette?.primary?.main ?? theme?.palette?.green['500'],
+			width: 14,
+			height: 14,
+			color: theme?.palette?.green[300] ?? 'green',
+			border:`1px solid ${theme?.palette?.green[400] ?? 'green'}`,
+			borderRadius: '100%',
 		},
 	};
 });
@@ -359,47 +362,47 @@ const generateBoxStyles = makeStyles(theme => {
 		titleNetwork: {
 			fontSize: '1rem',
 			paddingTop: '1rem',
-			color: theme?.palette?.text?.secondaryInverted || '#212121',
+			color: theme?.palette?.primary?.contrastText || '#212121',
 		},
 		description: {
-			color: theme?.palette?.text?.secondaryInverted || '#212121',
+			color: theme?.palette?.primary?.contrastText || '#212121',
 			fontSize: '1rem',
 		},
-		addresDescription: {
-			color: theme?.palette?.text?.primaryInverted || '#000000',
+		addressDescription: {
+			color: theme?.palette?.primary?.contrastText || '#000000',
 			fontSize: '0.9rem',
 			marginTop: '1rem',
 		},
 		buttonStyleBtn: {
 			// className that is set on the button (buttonStyle); can be overruled by user
 			marginTop: '1rem',
-			backgroundColor: '#00E676',
+			backgroundColor: theme?.palette?.primary?.light,
 			color: '#000000',
 			letterSpacing: '1.25px',
 			padding: '6px 16px',
 			'&:hover': {
-				backgroundColor: '#00DB59',
+				backgroundColor: theme?.palette?.secondary?.light,
 			},
 		},
 		btn: {
 			marginTop: '1rem',
-			backgroundColor: '#00E676',
+			backgroundColor: theme?.palette?.primary?.light,
 			color: '#000000',
 			letterSpacing: '1.25px',
 			padding: '6px 16px',
 			'&:hover': {
-				backgroundColor: '#00DB59',
+				backgroundColor: theme?.palette?.secondary?.light,
 				textDecoration: 'none',
 			},
 		},
 		btnButtonStyle: {
 			width: '100%',
-			backgroundColor: '#00E676',
+			backgroundColor: theme?.palette?.primary?.light,
 			color: '#000000',
 			letterSpacing: '1.25px',
 			padding: '6px 16px',
 			'&:hover': {
-				backgroundColor: '#00DB59',
+				backgroundColor: theme?.palette?.secondary?.light,
 			},
 		},
 		downloadDescription: {
@@ -408,19 +411,19 @@ const generateBoxStyles = makeStyles(theme => {
 		},
 		copied: {
 			padding: theme.spacing(1, 4),
-			color: theme?.palette?.text?.primaryInverted || '#000000',
-			backgroundColor: theme?.palette?.background?.main || '#FFFFFF',
+			color: theme?.palette?.primary?.dark || '#000000',
+			backgroundColor: theme?.palette?.background || '#FFFFFF',
 		},
 		iconBox: {
 			display: 'flex',
 			justifyContent: 'space-evenly',
 			margin: '1.5rem 0 1rem',
 			'& a': {
-				color: theme?.palette?.text?.secondaryInverted || '#212121',
+				color: theme?.palette?.primary?.contrastText || '#212121',
 			},
 			'& a:hover': {
 				textDecoration: 'none',
-				color: theme?.palette?.text?.primaryInverted || '#000000',
+				color: theme?.palette?.primary?.contrastText || '#000000',
 			},
 		},
 		iconBoxInner: {
@@ -437,12 +440,11 @@ const generateBoxStyles = makeStyles(theme => {
 		select: {
 			width: '100%',
 		},
-		selectPaper: {
-			backgroundColor: '#000',
-		},
+		selectPaper: {},
 		selectRoot: {
 			paddingTop: '0.6rem',
 			paddingBottom: '0.6rem',
+			color: theme?.palette?.primary?.contrastText,
 		},
 	};
 });
@@ -708,14 +710,14 @@ const WalletConnectButton = props => {
 				<MetamaskLogo className={boxClasses.iconConnected} />
 				{metamaskText}
 				{selectNetwork}
-				<p className={boxClasses.addresDescription}>{addressText}</p>
+				<p className={boxClasses.addressDescription}>{addressText}</p>
 				<div className={boxClasses.iconBox}>
 					<div
 						className={boxClasses.iconBoxInner}
 						onClick={copyAddress}
 						ref={copyContainerRef}
 					>
-						<div component="span" mr={1} my="auto">
+						<div component="span" my="auto">
 							<FileCopyOutlinedIcon />
 						</div>
 						{copyText}
@@ -723,7 +725,7 @@ const WalletConnectButton = props => {
 
 					<Link href={getExplorerUrl()} target="_blank" rel="noopener">
 						<div className={boxClasses.iconBoxInner}>
-							<div component="span" mr={1} my="auto">
+							<div component="span" my="auto">
 								<LaunchOutlinedIcon />
 							</div>
 							{viewText}
