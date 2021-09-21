@@ -748,25 +748,31 @@ const WalletConnectButton = props => {
 		? generateConnectedStyles()
 		: generateDisconnectedStyles();
 
-	if (isMobile && !metamaskInstalled) {
-		buttonOpenNativeMetamask = (
-			<Link
-				className={clsx(boxClasses.btn, btnClasses.buttonStyleBtn)}
-				classes={safeClasses(btnClasses)}
-				component={Button}
-				disabled={disabled}
-				disableElevation={disableElevation}
-				disableFocusRipple={disableFocusRipple}
-				disableRipple={disableRipple}
-				href={metamaskNativeAppUrl}
-				onClick={handleConnect}
-				target="_blank"
-				variant={variant}
-			>
-				{labelConnectWallet}
-			</Link>
-		);
+	let styleHidden;
+	if (!isMobile || metamaskInstalled) {
+		styleHidden = {display: 'none'};
 	}
+	// Note: `buttonOpenNativeMetamask` ALWAYS needs to be rendered;
+	// otherwise, when conditionally rendered, on mobile, the browser could throw
+	// an error complaining about changing hooks
+	buttonOpenNativeMetamask = (
+		<Link
+			className={clsx(boxClasses.btn, btnClasses.buttonStyleBtn)}
+			classes={safeClasses(btnClasses)}
+			component={Button}
+			disabled={disabled}
+			disableElevation={disableElevation}
+			disableFocusRipple={disableFocusRipple}
+			disableRipple={disableRipple}
+			href={metamaskNativeAppUrl}
+			onClick={handleConnect}
+			target="_blank"
+			style={styleHidden}
+			variant={variant}
+		>
+			{labelConnectWallet}
+		</Link>
+	);
 
 	if (buttonStyle) {
 		if (buttonOpenNativeMetamask) {
