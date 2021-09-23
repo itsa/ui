@@ -523,7 +523,6 @@ const WalletConnectButton = props => {
 	const isConnected = !wrongNetwork && address;
 	const boxClasses = generateBoxStyles(props);
 	let connectedBox;
-	let button;
 	let buttonOpenNativeMetamask;
 	let label;
 
@@ -748,9 +747,14 @@ const WalletConnectButton = props => {
 		? generateConnectedStyles()
 		: generateDisconnectedStyles();
 
-	let styleHidden;
-	if (!isMobile || metamaskInstalled) {
-		styleHidden = {display: 'none'};
+	const walletButtonEnabled = !isMobile || metamaskInstalled;
+	let styleButtonOpenNativeMetamask;
+	let styleButton;
+	if (walletButtonEnabled) {
+		styleButtonOpenNativeMetamask = {display: 'none'};
+	}
+	else {
+		styleButton = {display: 'none'};
 	}
 	// Note: `buttonOpenNativeMetamask` ALWAYS needs to be rendered;
 	// otherwise, when conditionally rendered, on mobile, the browser could throw
@@ -767,7 +771,7 @@ const WalletConnectButton = props => {
 			href={metamaskNativeAppUrl}
 			onClick={handleConnect}
 			target="_blank"
-			style={styleHidden}
+			style={styleButtonOpenNativeMetamask}
 			variant={variant}
 		>
 			{labelConnectWallet}
@@ -775,9 +779,9 @@ const WalletConnectButton = props => {
 	);
 
 	if (buttonStyle) {
-		if (buttonOpenNativeMetamask) {
-			return <div className={btnClasses.root}>{buttonOpenNativeMetamask}</div>;
-		}
+		// if (!walletButtonEnabled) {
+		// 	return <div className={btnClasses.root}>{buttonOpenNativeMetamask}</div>;
+		// }
 
 		let endIcon;
 		let startIcon;
@@ -818,10 +822,12 @@ const WalletConnectButton = props => {
 					endIcon={endIcon}
 					onClick={handleConnect}
 					startIcon={startIcon}
+					style={styleButton}
 					variant={variant}
 				>
 					{label}
 				</Button>
+				{buttonOpenNativeMetamask}
 				<Backdrop
 					className={btnClasses.backdrop}
 					open={buttonOpened}
@@ -856,26 +862,24 @@ const WalletConnectButton = props => {
 		);
 	}
 
-	// Box style not connected:
-	button = buttonOpenNativeMetamask || (
-		<Button
-			className={boxClasses.btn}
-			disabled={disabled}
-			disableElevation={disableElevation}
-			disableFocusRipple={disableFocusRipple}
-			disableRipple={disableRipple}
-			onClick={handleConnect}
-			variant={variant}
-		>
-			{labelConnectMetamask}
-		</Button>
-	);
 	return (
 		<div className={clsx(boxClasses.root, className)}>
 				<MetamaskLogo className={boxClasses.icon} />
 				<p className={boxClasses.title}>{labelConnectWallet}</p>
 				<p className={boxClasses.description}>{labelGetStarted}</p>
-				{button}
+				<Button
+					className={boxClasses.btn}
+					disabled={disabled}
+					disableElevation={disableElevation}
+					disableFocusRipple={disableFocusRipple}
+					disableRipple={disableRipple}
+					onClick={handleConnect}
+					style={styleButton}
+					variant={variant}
+				>
+					{labelConnectMetamask}
+				</Button>
+				{buttonOpenNativeMetamask}
 			{downloadMetamask}
 		</div>
 	);
