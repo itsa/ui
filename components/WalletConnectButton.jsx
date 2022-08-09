@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa.io/web3utils';
-import { Button, Link, Box, Select, MenuItem, IconButton, Popover, Backdrop, makeStyles } from '@material-ui/core';
+import { Button, Link, Box, Select, MenuItem, IconButton, Popover, Backdrop, makeStyles, Avatar as TokenImg } from '@material-ui/core';
 import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from '@material-ui/icons';
 import { toPairs } from 'lodash';
 
@@ -342,9 +342,10 @@ const generateBoxStyles = makeStyles(theme => {
 			verticalAlign: 'middle',
 		},
 		iconConnected: {
-			width: '3rem',
-			height: '3rem',
+			width: '4rem',
+			height: '4rem',
 			verticalAlign: 'middle',
+			marginBottom: '2rem',
 		},
 		title: {
 			fontWeight: 'bold',
@@ -446,6 +447,55 @@ const generateBoxStyles = makeStyles(theme => {
 			paddingBottom: '0.6rem',
 			color: theme?.palette?.primary?.contrastText,
 		},
+		buttonIcon: {
+			marginTop: theme.spacing(3),
+			'&:hover': {
+				backgroundColor: 'transparent',
+			},
+			'&:hover $networkIcon': {
+				borderColor: theme.palette.secondary.dark,
+				backgroundColor: theme.palette.default.light,
+			},
+			'&.Mui-disabled $networkIcon': {
+				opacity: 0.25,
+			},
+			fontSize: 14,
+			'& .MuiButton-label': {
+				display: 'flex',
+				flexDirection: 'column',
+				textTransform: 'uppercase',
+			},
+			[theme.breakpoints.up('sm')]: {
+				marginTop: theme.spacing(0),
+			},
+		},
+		buttonIconActive: {
+			backgroundColor: 'transparent',
+			'& $networkIcon': {
+				borderColor: theme.palette.secondary.dark,
+				backgroundColor: theme.palette.default.light,
+			},
+		},
+		networkIcons: {
+			display: 'flex',
+		},
+		networkIcon: {
+			display: 'flex',
+			justifyContent: 'center',
+			alignItems: 'center',
+			width: '3rem',
+			height: '3rem',
+			backgroundColor: theme.palette.default.light,
+			border: `1px solid ${theme.palette.default.light}`,
+			borderRadius: 12,
+			padding: theme.spacing(1),
+			marginBottom: theme.spacing(1),
+		},
+		networkIconImgUnknown: {
+			fontSize: 14,
+			fontWeight: 700,
+			color: theme.palette.secondary.light,
+		},
 	};
 });
 
@@ -492,6 +542,7 @@ const WalletConnectButton = props => {
 		labelViewExplorer,
 		labelWrongNetwork,
 		metamaskNativeAppUrl,
+		networkIcons,
 		networkNames,
 		onAddressCopied,
 		onConnect,
@@ -522,6 +573,7 @@ const WalletConnectButton = props => {
 	const wrongNetwork = !validChainIds.includes(mmChainId);
 	const isConnected = !wrongNetwork && address;
 	const boxClasses = generateBoxStyles(props);
+	let selectNetwork;
 	let connectedBox;
 	let buttonOpenNativeMetamask;
 	let label;
@@ -687,7 +739,48 @@ const WalletConnectButton = props => {
 			</Popover>
 		);
 
-	const selectNetwork = (
+		if (Object.keys(networkIcons).length > 0) {
+			const selectNetworkItems = Object.keys(networkIcons).map(chainid => {
+				const name = networkNames[chainid];
+				const icon = networkIcons[chainid];
+				const value = parseInt(chainid, 10);
+
+				return (
+					<IconButton
+						className={clsx(boxClasses.buttonIcon, {
+							[boxClasses.buttonIconActive]: selectedNetwork === value,
+						})}
+						// disabled={!ITSA_SUBSCRIPTION_SC_ADDRESSES[chainid]}
+						onClick={() => handleNetworkChange({ target: { value }})}
+						key={chainid}
+					>
+						<TokenImg
+							className={boxClasses.networkIcon}
+							alt={name}
+							width="40"
+							height="40"
+							src={icon}
+						>
+							<TokenImg className={boxClasses.networkIconImgUnknown} alt={name} src="">
+								?
+							</TokenImg>
+						</TokenImg>
+					</IconButton>
+				);
+			});
+			selectNetwork = (
+				<div className={boxClasses.networkIcons}>
+					{selectNetworkItems}
+				</div>
+			);
+		} else {
+			const menuItems = Object.keys(networkNames).map(chainid => {
+				const name = networkNames[chainid];
+				const value = parseInt(chainid, 10);
+				return (<MenuItem value={value} key={name}>{name}</MenuItem>)
+			});
+
+			selectNetwork = (
 				<Select
 					value={selectedNetwork}
 					onChange={handleNetworkChange}
@@ -702,7 +795,8 @@ const WalletConnectButton = props => {
 					>
 					{menuItems}
 				</Select>
-		);
+		    );
+		}
 
 		connectedBox = (
 			<>
@@ -731,14 +825,14 @@ const WalletConnectButton = props => {
 						</div>
 					</Link>
 				</div>
-				<Button
+{/*				<Button
 					className={classNameButton}
 					disableElevation
 					onClick={handleDisconnect}
 				>
 					{label}
 				</Button>
-			{popoverCopyAddressContent}
+*/}			{popoverCopyAddressContent}
 			</>
 		);
 	}
@@ -908,7 +1002,8 @@ WalletConnectButton.defaultProps = {
 	labelViewExplorer: 'view in explorer',
 	labelWrongNetwork: 'wrong network',
 	metamaskNativeAppUrl: '',
-	networkNames: [],
+	networkIcons: {},
+	networkNames: {},
 	onAddressCopied: NOOP,
 	onConnect: NOOP,
 	onDisconnect: NOOP,
@@ -942,6 +1037,7 @@ WalletConnectButton.propTypes = {
 	labelViewExplorer: PropTypes.string,
 	labelWrongNetwork: PropTypes.string,
 	metamaskNativeAppUrl: PropTypes.string,
+	networkIcons: PropTypes.object,
 	networkNames: PropTypes.object,
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
