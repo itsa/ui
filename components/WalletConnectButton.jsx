@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { isMobile, useMetamask, copyToClipboard } from '@itsa.io/web3utils';
-import { Button, Link, Box, Select, MenuItem, IconButton, Popover, Backdrop, makeStyles, Avatar as TokenImg } from '@material-ui/core';
+import { Button, Link, Box, Select, MenuItem, List, ListItem, ListItemIcon, ListItemText, IconButton, Popover, Backdrop, makeStyles, alpha, Avatar as TokenImg } from '@material-ui/core';
 import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from '@material-ui/icons';
 import { toPairs } from 'lodash';
 
@@ -296,8 +296,8 @@ const generateConnectedStyles = makeStyles(theme => {
 			right: theme.spacing(1),
 			color: theme?.palette?.grey[50] || '#FFFFFF',
 		},
-
 		backdrop: {
+			backgroundColor: `${alpha(theme.palette.common.black, 0.5)}!important`,
 			zIndex: 1
 		},
 	};
@@ -342,8 +342,8 @@ const generateBoxStyles = makeStyles(theme => {
 			verticalAlign: 'middle',
 		},
 		iconConnected: {
-			width: '4rem',
-			height: '4rem',
+			width: 64,
+			minHeight: 64,
 			verticalAlign: 'middle',
 			marginBottom: '2rem',
 		},
@@ -362,7 +362,7 @@ const generateBoxStyles = makeStyles(theme => {
 		},
 		titleNetwork: {
 			fontSize: '1rem',
-			paddingTop: '1rem',
+			marginBottom: theme.spacing(1),
 			color: theme?.palette?.primary?.contrastText || '#212121',
 		},
 		description: {
@@ -447,49 +447,25 @@ const generateBoxStyles = makeStyles(theme => {
 			paddingBottom: '0.6rem',
 			color: theme?.palette?.primary?.contrastText,
 		},
-		buttonIcon: {
-			marginTop: theme.spacing(3),
-			'&:hover': {
-				backgroundColor: 'transparent',
-			},
-			'&:hover $networkIcon': {
-				borderColor: theme.palette.secondary.dark,
-				backgroundColor: theme.palette.default.light,
-			},
-			'&.Mui-disabled $networkIcon': {
-				opacity: 0.25,
-			},
-			fontSize: 14,
-			'& .MuiButton-label': {
-				display: 'flex',
-				flexDirection: 'column',
-				textTransform: 'uppercase',
-			},
-			[theme.breakpoints.up('sm')]: {
-				marginTop: theme.spacing(0),
+		listIcons: {
+			width: '100%',
+			maxWidth: 400,
+			'& $listItem + $listItem':{
+				marginTop: theme.spacing(1),
 			},
 		},
-		buttonIconActive: {
-			backgroundColor: 'transparent',
-			'& $networkIcon': {
-				borderColor: theme.palette.secondary.dark,
-				backgroundColor: theme.palette.default.light,
-			},
+		listItem: {
+			border: `1px solid ${alpha(theme.palette.primary.light, 0.2)}`,
+			borderRadius: 6,
 		},
-		networkIcons: {
-			display: 'flex',
+		listItemActive: {
+			backgroundColor: alpha(theme.palette.secondary.main, 0.85),
 		},
 		networkIcon: {
-			display: 'flex',
-			justifyContent: 'center',
-			alignItems: 'center',
-			width: '3rem',
-			height: '3rem',
-			backgroundColor: theme.palette.default.light,
-			border: `1px solid ${theme.palette.default.light}`,
-			borderRadius: 12,
-			padding: theme.spacing(1),
-			marginBottom: theme.spacing(1),
+			overflow: 'inherit',
+			'& .MuiAvatar-img':{
+				marginTop: 2,
+			},
 		},
 		networkIconImgUnknown: {
 			fontSize: 14,
@@ -707,7 +683,7 @@ const WalletConnectButton = props => {
 			viewText = <span>{labelViewExplorer}</span>;
 		}
 		if (labelNetwork) {
-			network = <p className={boxClasses.titleNetwork}>{labelNetwork}</p>;
+			network = <div className={boxClasses.titleNetwork}>{labelNetwork}</div>;
 		}
 		if (!buttonStyle) {
 			metamaskText = <span className={boxClasses.titleMetaMask}>metamask</span>;
@@ -746,32 +722,35 @@ const WalletConnectButton = props => {
 				const value = parseInt(chainid, 10);
 
 				return (
-					<IconButton
-						className={clsx(boxClasses.buttonIcon, {
-							[boxClasses.buttonIconActive]: selectedNetwork === value,
-						})}
-						// disabled={!ITSA_SUBSCRIPTION_SC_ADDRESSES[chainid]}
+					<ListItem 	
+						button		
+						className={clsx(boxClasses.listItem, {
+							[boxClasses.listItemActive]: selectedNetwork === value,
+						})}			
 						onClick={() => handleNetworkChange({ target: { value }})}
-						key={chainid}
-					>
-						<TokenImg
-							className={boxClasses.networkIcon}
-							alt={name}
-							width="40"
-							height="40"
-							src={icon}
-						>
-							<TokenImg className={boxClasses.networkIconImgUnknown} alt={name} src="">
-								?
+						// disabled={!ITSA_SUBSCRIPTION_SC_ADDRESSES[chainid]}
+						key={chainid}>
+						<ListItemIcon>
+							<TokenImg
+								className={boxClasses.networkIcon}
+								alt={name}
+								width="40"
+								height="40"
+								src={icon}
+							>
+								<TokenImg className={boxClasses.networkIconImgUnknown} alt={name} src="">
+									?
+								</TokenImg>
 							</TokenImg>
-						</TokenImg>
-					</IconButton>
+						</ListItemIcon>
+						<ListItemText primary={name} />
+					</ListItem>
 				);
 			});
 			selectNetwork = (
-				<div className={boxClasses.networkIcons}>
+				<List className={boxClasses.listIcons}>
 					{selectNetworkItems}
-				</div>
+				</List>
 			);
 		} else {
 			const menuItems = Object.keys(networkNames).map(chainid => {
@@ -802,6 +781,7 @@ const WalletConnectButton = props => {
 			<>
 				<MetamaskLogo className={boxClasses.iconConnected} />
 				{metamaskText}
+				{network}
 				{selectNetwork}
 				<p className={boxClasses.addressDescription}>{addressText}</p>
 				<div className={boxClasses.iconBox}>
