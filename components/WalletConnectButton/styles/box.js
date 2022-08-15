@@ -12,16 +12,33 @@ export default makeStyles(theme => {
         walletsContainer: {
 			display: 'flex',
 			flexDirection: 'column',
+			gap: '1rem',
+			margin: theme.spacing(2, 0),
+			[theme.breakpoints.up('sm')]: {
+				flexDirection: 'row',
+			},
         },
 		walletMainImage: {
 			width: '8rem',
 			height: '8rem',
 			verticalAlign: 'middle',
-            fill: theme?.palette?.primary?.light,
+            fill: theme?.palette?.primary?.dark,
 		},
         walletsContainerItem: {
-            display: 'flex',
-            flexDirection: 'row',
+			width: '100%',
+			maxWidth: 140,
+			padding: theme.spacing(2),
+			borderRadius: 12,
+			backgroundColor: theme.palette.default.light,
+			border: `1px solid ${alpha(theme.palette.primary.light, 0.1)}`,
+			'&:hover':{
+				backgroundColor: theme.palette.default.light,
+				borderColor: theme.palette.secondary.dark,
+			},
+            '& .MuiButton-label':{
+				display: 'flex',
+				flexDirection: 'column',
+			}
         },
 		walletIcon: {
 			width: '4rem',
@@ -32,8 +49,8 @@ export default makeStyles(theme => {
 			border: `solid 1px ${theme?.palette?.primary?.light}`,
 		},
 		ledgerIcon: {
-			width: 'auto',
-            fill: theme?.palette?.primary?.light,
+			width: '6rem',
+            fill: theme?.palette?.default?.contrastText,
             padding: '0.5rem'
 		},
 		networkIcon: {
