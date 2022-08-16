@@ -370,6 +370,7 @@ const WalletConnectButton = props => {
 								[boxClasses.walletIconConnected]: wallet === 'ledger',
 							})} onClick={handleConnect.bind(null, 'ledger')}>
 						<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
+						<p className={boxClasses.description}>Hardware Wallet</p>
 					</Button>
 					<Button className={clsx(boxClasses.walletsContainerItem, {
 								[boxClasses.walletIconConnected]: wallet === 'brave',
