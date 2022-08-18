@@ -88,8 +88,12 @@ export default makeStyles(theme => {
 		},
 		addressDescription: {
 			color: theme?.palette?.primary?.contrastText || '#000000',
-			fontSize: '0.9rem',
-			marginTop: '1rem',
+			fontSize: '1rem',
+			marginTop: '1.5rem',
+			marginBottom: '0.25rem',
+		},
+		noApp: {
+			color: theme?.palette?.red[300] ?? 'red',
 		},
 		buttonStyleBtn: {
 			// className that is set on the button (buttonStyle); can be overruled by user
@@ -188,5 +192,13 @@ export default makeStyles(theme => {
 			fontSize: 14,
 			fontWeight: 700,
 			color: theme.palette.secondary.light,
+		},
+		addressPicker: {
+			width: '100%',
+			maxWidth: 500,
+		},
+		backdrop: {
+			backgroundColor: `${alpha(theme.palette.common.black, 0.5)}!important`,
+			zIndex: 1
 		},
 	};});
