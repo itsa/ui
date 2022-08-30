@@ -1,4 +1,5 @@
 import { toPairs } from 'lodash';
+import { isMobile, cryptowalletDetection } from '@itsa.io/web3utils';
 
 const MATERIAL_UI_CSS_PROPS = {
 	root: true,
@@ -58,3 +59,5 @@ export const safeClasses = classes => {
 export const capitalizeFirstCharacter = text => text.length ? text[0].toUpperCase() + text.substring(1) : '';
 
 export const NOOP = () => {};
+
+export const usesMobileAppWallet = isMobile && cryptowalletDetection.hasWallet;

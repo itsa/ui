@@ -8,7 +8,7 @@ import { Button, Link, Box, Select, MenuItem, List, ListItem, ListItemIcon, List
 import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon, Close as CloseIcon } from '@material-ui/icons';
 import MetamaskLogo from './icons/Metamask';
 import BraveLogo from './icons/BraveBrowser';
-import { shortenAddress, safeClasses, NOOP } from './helpers';
+import { shortenAddress, safeClasses, NOOP, usesMobileAppWallet } from './helpers';
 import generateConnectedStyles from './styles/connected';
 import generateDisconnectedStyles from './styles/disconnected';
 import generateEndIconStyles from './styles/end-icon';
@@ -444,6 +444,19 @@ const NetworkConnectButton = props => {
 		mainLogo = <MetamaskLogo className={boxClasses.networkIconConnected} />;
 	}
 
+	let buttonDisconnect;
+	if (!usesMobileAppWallet) {
+		buttonDisconnect = (
+			<Button
+				className={classNameButton}
+				disableElevation
+				onClick={handleDisconnect}
+			>
+				{label}
+			</Button>
+		);
+	}
+
 	connectedBox = (
 		<>
 			{mainLogo}
@@ -476,13 +489,7 @@ const NetworkConnectButton = props => {
 					</div>
 				</Link>
 			</div>
-			<Button
-				className={classNameButton}
-				disableElevation
-				onClick={handleDisconnect}
-			>
-				{label}
-			</Button>
+			{buttonDisconnect}
 			{popoverCopyAddressContent}
 		</>
 	);
@@ -570,7 +577,7 @@ const NetworkConnectButton = props => {
 		content = selectHardwareDevice;
 	} else {
 		content = (
-			<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
+			<div className={clsx(boxClasses.root, boxClasses.noOverflowX, 'metamask-connected', className)} ref={metamaskBoxRef}>
 				{closebtn}
 				{connectedBox}
 			</div>

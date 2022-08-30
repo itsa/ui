@@ -9,6 +9,9 @@ export default makeStyles(theme => {
 			textAlign: 'center',
 			zIndex: 2,
 		},
+		noOverflowX: {
+			overflowX: 'hidden',
+		},
         walletsContainer: {
 			display: 'flex',
 			flexDirection: 'column',
@@ -34,7 +37,7 @@ export default makeStyles(theme => {
 					width: 135,
 				},
 			},
-			'& > a': {
+			'& a': {
 				width: 120,
 				[theme.breakpoints.down('sm')]: {
 					width: 135,
@@ -50,7 +53,7 @@ export default makeStyles(theme => {
 					paddingBottom: 0,
 				},
 			},
-			'& > a': {
+			'& a': {
 				width: 165,
 				[theme.breakpoints.down('sm')]: {
 					width: 280,
@@ -70,7 +73,7 @@ export default makeStyles(theme => {
 					width: 280,
 				},
 			},
-			'& > a': {
+			'& a': {
 				width: 190,
 				[theme.breakpoints.down('sm')]: {
 					width: 280,
@@ -88,7 +91,7 @@ export default makeStyles(theme => {
 					width: 280,
 				},
 			},
-			'& > a': {
+			'& a': {
 				width: 290,
 				[theme.breakpoints.down('sm')]: {
 					width: 280,
@@ -217,7 +220,10 @@ export default makeStyles(theme => {
 			fontSize: '1rem!important',
 			marginTop: '1.5rem',
 			marginBottom: '0.25rem',
-		},
+			[theme.breakpoints.down('sm')]: {
+				fontSize: '0.8rem!important',
+			},
+	},
 		hardwareAddressDescription: {
 			fontSize: '1rem!important',
 			padding: '0 0.2rem',
