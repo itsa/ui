@@ -127,7 +127,7 @@ const WalletConnect = props => {
 	const ledgerButton = (
 		<Button key="ledger" className={clsx(boxClasses.walletsContainerItem, {
 			[boxClasses.walletIconConnected]: wallet === 'ledger' && !lastClickedButton,
-		})} onClick={handleConnect.bind(null, 'ledger')}>
+		})} disabled={!hasWebUsb} onClick={handleConnect.bind(null, 'ledger')}>
 			<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
 			<p className={boxClasses.description}>Hardware Wallet <span>USB</span></p>
 			{noUsbSupportMsg}
