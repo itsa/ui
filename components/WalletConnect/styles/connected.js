@@ -28,5 +28,8 @@ export default makeStyles(theme => {
 			backgroundColor: `${alpha(theme.palette.common.black, 0.5)}!important`,
 			zIndex: 1
 		},
+		buttonStyleBtn: {
+			position: 'relative',
+		},
 	};
 });

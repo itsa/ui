@@ -2,10 +2,12 @@
 import React, { useEffect, useRef, useState, useContext } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { isMobile, cryptowalletCtx, copyToClipboard, localStorageProperty } from '@itsa.io/web3utils';
+import { cloneDeep } from 'lodash';
+import { cryptowalletCtx, copyToClipboard, managedPromise } from '@itsa.io/web3utils';
 import { Button, Link, Box, Select, MenuItem, List, ListItem, ListItemIcon, ListItemText, IconButton, Popover, Backdrop, Avatar as TokenImg } from '@material-ui/core';
-import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, Close as CloseIcon } from '@material-ui/icons';
+import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon, Close as CloseIcon } from '@material-ui/icons';
 import MetamaskLogo from './icons/Metamask';
+import BraveLogo from './icons/BraveBrowser';
 import { shortenAddress, safeClasses, NOOP } from './helpers';
 import generateConnectedStyles from './styles/connected';
 import generateDisconnectedStyles from './styles/disconnected';
@@ -13,9 +15,16 @@ import generateEndIconStyles from './styles/end-icon';
 import generateStartIconConnectedStyles from './styles/start-icon-connected';
 import generateStartIconDisconnectedStyles from './styles/start-icon-disconnected';
 import generateBoxStyles from './styles/box';
+import LedgerIcon from './icons/LedgerIcon';
+import BraveIcon from './icons/BraveBrowser';
+import MetamaskIcon from './icons/Metamask';
+import generateSelectDeviceStyles from './styles/select-device';
+
+const PLACEHOLDER_ADDRESS = ''; // must be defined, we need 5 addressboxes, which should be empty when no more addresses in `accounts`
 
 const NetworkConnectButton = props => {
 	const {
+		addressBook,
 		addressChars,
 		addressCharsLeft,
 		addressCharsRight,
@@ -29,9 +38,11 @@ const NetworkConnectButton = props => {
 		disableFocusRipple,
 		disableRipple,
 		explorerUrls,
+		labelAddresses,
 		labelAddressCopied,
 		labelCopy,
 		labelDisconnect,
+		labelDisconnectHardware,
 		labelNetwork,
 		labelChooseAddress,
 		labelChooseNetwork,
@@ -42,25 +53,31 @@ const NetworkConnectButton = props => {
 		onAddressCopied,
 		onConnect,
 		onDisconnect,
+		onMessage,
 		onToggle,
 		timeoutCopyPopup,
 		variant,
 	} = props;
 
 	const {
+		activated,
 		address,
 		accounts,
 		initialized,
 		chainId,
 		connect,
+		wallet,
 		hardwareWallet,
 		disconnect,
 		networkConnected,
 		installed: metamaskInstalled,
 		switchToNetwork,
 		switchToAddress,
-		setMessageListenerFn,
-		appSelected,
+		readHardwareAccounts,
+		hardwareStatus,
+		hardwareAddressIndex,
+		setSelectHardwareDeviceFn,
+		cancelReadHardwareAccounts,
 	} = useContext(cryptowalletCtx);
 
 	const timeout = useRef();
@@ -69,13 +86,56 @@ const NetworkConnectButton = props => {
 	const closedFromOutside = useRef(false);
 	const copyContainerRef = useRef();
 	const buttonOpenedRef = useRef(buttonOpened);
+	const selectHardwareWalletRef = useRef();
 	const [popupId, setPopupId] = useState();
+	const [addressPage, setAddressPage] = useState(Math.max(0, Math.floor(hardwareAddressIndex / 5)));
 	const [selectedNetwork, setSelectNetwork] = useState('');
-	const [hardwareStatus, setHardwareStatus] = useState(0);
 	const boxClasses = generateBoxStyles(props);
+	const selectDeviceClasses = generateSelectDeviceStyles(props);
+	const [askHardwareDevice, setAskHardwareDevice] = useState();
+	const showAskHardwareDevice = Array.isArray(askHardwareDevice) && askHardwareDevice.length > 1;
 	let selectNetwork;
 	let connectedBox;
 	let label;
+	let selectHardwareDevice;
+
+	const selectHardwareWallet = (items) => {
+		selectHardwareWalletRef.current = managedPromise();
+		setAskHardwareDevice(items);
+		return selectHardwareWalletRef.current;
+	}
+
+	const chooseHardwareDevice = index => {
+		setAskHardwareDevice(null);
+		selectHardwareWalletRef.current.fulfill(index);
+	};
+
+	if (showAskHardwareDevice) {
+		const items = askHardwareDevice.map((name, index) => {
+			return (
+				<ListItem
+					button
+					className={clsx(selectDeviceClasses.listItem)}
+					onClick={() => chooseHardwareDevice(index)}
+					key={index}>
+					<ListItemIcon>
+						<LedgerIcon className={selectDeviceClasses.ledgerIcon} />
+					</ListItemIcon>
+					<ListItemText className={selectDeviceClasses.iconText} primary={name} />
+				</ListItem>
+			);
+		});
+
+		selectHardwareDevice = (
+			<List className={selectDeviceClasses.listIcons}>
+				{items}
+			</List>
+		);
+	}
+
+	const setCurrentPage = () => {
+		setAddressPage(Math.max(0, Math.floor(hardwareAddressIndex / 5)));
+	}
 
 	const handleConnect = async (e) => {
 		e.currentTarget.blur();
@@ -121,6 +181,8 @@ const NetworkConnectButton = props => {
 				setTimeout(() => {
 					closedFromOutside.current = false;
 				}, 300);
+				cancelReadHardwareAccounts();
+				setCurrentPage();
 				onToggle(e);
 			}
 		}
@@ -148,29 +210,36 @@ const NetworkConnectButton = props => {
 		setSelectNetwork(value);
 		try {
 			await switchToNetwork(value);
+			if (hardwareWallet && accounts.length < (addressPage + 1) * 5) {
+				readHardwareAccounts(value, (addressPage + 1) * 5);
+			}
+			if (!hardwareWallet || address) {
+				closedFromOutside.current = false;
+				if (buttonOpened) {
+					props.onToggle();
+				}
+			}
+		}
+		catch (err) {
+			console.error(err);
+		}
+	}
+
+	const handleAddressChange = async (i, address) => {
+		try {
+			await switchToAddress(address);
 			closedFromOutside.current = false;
+			cancelReadHardwareAccounts();
 			if (buttonOpened) {
 				props.onToggle();
-			// } else {
-			// 	forceUpdate();
 			}
 		}
 		catch (err) {}
 	}
-	const handleAddressChange = async e => {
-		const value = e.target.value;
-		console.debug('handleAddressChange', value);
-		// setSelectNetwork(value);
-		try {
-			await switchToAddress(value);
-			// closedFromOutside.current = false;
-			// if (buttonOpened) {
-			// 	props.onToggle();
-			// } else {
-			// 	forceUpdate();
-			// }
-		}
-		catch (err) {}
+
+	const gotoAddressPage = page => {
+		readHardwareAccounts(chainId, (page + 1) * 5);
+		setAddressPage(page);
 	}
 
 	const getExplorerUrl = () => {
@@ -180,14 +249,10 @@ const NetworkConnectButton = props => {
 		return `${explorerUrls[chainId]}/address/${address}`;
 	}
 
-	const handleHardwareWalletMessage = ({ message, level, status = 0 }) => {
-		console.debug(`handleHardwareWalletMessage level ${level}: ${message} | status: ${status}`);
-		setHardwareStatus(status);
-	}
-
 	// make the select to close if clicked outside
 	useEffect(() => {
 		document.addEventListener('mousedown', handleClickOutside, true);
+		setSelectHardwareDeviceFn(selectHardwareWallet);
 		return () => {
 			clearTimeout(timeout.current);
 			document.removeEventListener('mousedown', handleClickOutside, true);
@@ -196,18 +261,17 @@ const NetworkConnectButton = props => {
 	}, []);
 
 	useEffect(() => {
-		if(chainId){
+		if (chainId) {
 			setSelectNetwork(chainId)
 		}
 	}, [chainId]);
 
 	useEffect(() => {
 		buttonOpenedRef.current = buttonOpened;
+		if (buttonOpened && hardwareWallet && chainId  && accounts.length < (addressPage + 1) * 5) {
+			readHardwareAccounts(chainId, (addressPage + 1) * 5);
+		}
 	}, [buttonOpened]);
-
-	useEffect(() => {
-		setMessageListenerFn(handleHardwareWalletMessage);
-	}, []);
 
 	let network;
 	let classNameButton;
@@ -234,7 +298,7 @@ const NetworkConnectButton = props => {
 			network = <div className={boxClasses.titleNetwork}>{labelNetwork}</div>;
 		}
 	}
-	label = labelDisconnect;
+	label = hardwareWallet ? labelDisconnectHardware : labelDisconnect;
 
 	const popoverCopyAddressContent = (
 		<Popover
@@ -319,29 +383,53 @@ const NetworkConnectButton = props => {
 	let addressPicker;
 	let addressDesc;
 
-    if (hardwareWallet) {
-		const menuItemItems = accounts.map(item => (
-			<MenuItem className={boxClasses.menuItem} key={item} value={item}>
-				{item}
-			</MenuItem>
+    if (hardwareWallet && chainId) {
+		const shownAccounts = cloneDeep(accounts.slice(addressPage * 5, (addressPage + 1) * 5));
+		for (let i = 0; i < 5; i++) {
+			if (!shownAccounts[i]) {
+				shownAccounts[i] = PLACEHOLDER_ADDRESS;
+			}
+		}
+		const menuItemItems = shownAccounts.map((item, i) => (
+			<ListItem
+				button
+				className={clsx(boxClasses.listItem, boxClasses.listItemAddress, {
+					[boxClasses.listItemActive]: address === item,
+				})}
+				onClick={() => handleAddressChange(i, item)}
+				key={item === PLACEHOLDER_ADDRESS ? i : item}>
+				<ListItemText primary={item} />
+			</ListItem>
 		));
 
+		let textAddressList;
+		const requiredCount = (addressPage + 1) * 5;
+		const ledgerWarning = (hardwareStatus !== 0) && (accounts.length < requiredCount) && !!chainId;
+		if (!chainId) {
+			textAddressList = labelAddresses;
+		} else if (shownAccounts.filter(item => !!item).length === 5) {
+			textAddressList = labelChooseAddress;
+		} else {
+			textAddressList = ledgerWarning ? labelSelectEthApp : labelAddresses;
+		}
 		addressDesc = (
-			<p className={clsx(boxClasses.addressDescription, {
-				[boxClasses.noApp]: hardwareStatus === 1
-			})}>{hardwareStatus === 1 ? labelSelectEthApp : labelChooseAddress}</p>
+			<div className={boxClasses.addressContainer}>
+				<IconButton className={boxClasses.iconButton} disabled={addressPage === 0} onClick={() => gotoAddressPage(addressPage - 1)}>
+					<ArrowLeftIcon />
+				</IconButton>
+				<p className={clsx(boxClasses.hardwareAddressDescription, {
+					[boxClasses.noApp]: ledgerWarning
+				})}>{textAddressList}</p>
+				<IconButton className={boxClasses.iconButton} disabled={accounts.length < requiredCount} onClick={() => gotoAddressPage(addressPage + 1)}>
+					<ArrowRightIcon />
+				</IconButton>
+			</div>
 		);
 
 		addressPicker = (
-			<Select
-				className={boxClasses.addressPicker}
-				value={address}
-				onChange={handleAddressChange}
-				variant="outlined"
-				displayEmpty
-			>
+			<List className={boxClasses.addressPicker}>
 				{menuItemItems}
-			</Select>
+			</List>
 		);
 	} else {
 		addressDesc = (
@@ -349,18 +437,26 @@ const NetworkConnectButton = props => {
 		);
 	}
 
+	let mainLogo;
+	if (wallet === 'brave') {
+		mainLogo = <BraveLogo className={boxClasses.networkIconConnected} />;
+	} else {
+		mainLogo = <MetamaskLogo className={boxClasses.networkIconConnected} />;
+	}
 
 	connectedBox = (
 		<>
-			<MetamaskLogo className={boxClasses.networkIconConnected} />
+			{mainLogo}
 			{network}
 			{selectNetwork}
 			{addressDesc}
 			{addressPicker}
 			<div className={boxClasses.iconBox}>
 				<div
-					className={boxClasses.iconBoxInner}
-					onClick={copyAddress}
+					className={clsx(boxClasses.iconBoxInner, {
+						[boxClasses.iconBoxInnerDisabled]: !address
+					})}
+					onClick={address ? copyAddress : NOOP}
 					ref={copyContainerRef}
 				>
 					<div component="span" my="auto">
@@ -369,8 +465,10 @@ const NetworkConnectButton = props => {
 					{copyText}
 				</div>
 
-				<Link href={getExplorerUrl()} target="_blank" rel="noopener">
-					<div className={boxClasses.iconBoxInner}>
+				<Link href={address ? getExplorerUrl() : '#'} target="_blank" rel="noopener">
+					<div className={clsx(boxClasses.iconBoxInner, {
+						[boxClasses.iconBoxInnerDisabled]: !address
+					})}>
 						<div component="span" my="auto">
 							<LaunchOutlinedIcon />
 						</div>
@@ -385,7 +483,7 @@ const NetworkConnectButton = props => {
 			>
 				{label}
 			</Button>
-		{popoverCopyAddressContent}
+			{popoverCopyAddressContent}
 		</>
 	);
 
@@ -394,24 +492,36 @@ const NetworkConnectButton = props => {
 		? generateConnectedStyles()
 		: generateDisconnectedStyles();
 
-	const walletButtonEnabled = !isMobile || metamaskInstalled;
-	let styleButton;
-	if (!walletButtonEnabled) {
-		styleButton = {display: 'none'};
-	}
-
 	let endIcon;
 	let startIcon;
 	let styles;
 	const endIconClasses = generateEndIconStyles();
 	const startIconClasses = networkConnected ? generateStartIconConnectedStyles() : generateStartIconDisconnectedStyles();
 	if (networkConnected) {
-		endIcon = <ArrowDropDownIcon classes={safeClasses(endIconClasses)} />;
+		if (wallet === 'ledger') {
+			endIcon = <LedgerIcon className={boxClasses.addressIconLedger} />;
+		}
+		else if (wallet === 'ledgerbt') {
+			endIcon = (
+				<>
+					<LedgerIcon className={boxClasses.addressIconLedger} />
+					<div className={boxClasses.bluetoothMarker}>BT</div>
+				</>
+			);
+		} else if (wallet === 'brave') {
+			endIcon = <BraveIcon className={boxClasses.addressIconBrave} />;
+		} else if (wallet === 'metamask') {
+			endIcon = <MetamaskIcon className={boxClasses.addressIconMetamask} />;
+		} else {
+			endIcon = <ArrowDropDownIcon classes={safeClasses(endIconClasses)} />;
+		}
 	}
 	startIcon = <FiberManualRecordIcon classes={safeClasses(startIconClasses)} />;
 
 	const handleCloseIcon = e => {
 		closedFromOutside.current = false;
+		cancelReadHardwareAccounts();
+		setCurrentPage();
 		props.onToggle(e);
 	}
 
@@ -419,7 +529,7 @@ const NetworkConnectButton = props => {
 		styles = {display: 'none'};
 	}
 
-	label = shortenAddress(
+	label = addressBook[address?.toLowerCase()] || shortenAddress(
 		address,
 		addressChars ?? addressCharsLeft,
 		addressChars ?? addressCharsRight,
@@ -447,11 +557,23 @@ const NetworkConnectButton = props => {
 				endIcon={endIcon}
 				onClick={handleConnect}
 				startIcon={startIcon}
-				style={styleButton}
+				// style={styleButton}
 				variant={variant}
 			>
-				{label}
+				<div className={boxClasses.buttonStyleBtnLabel}>{label}</div>
 			</Button>
+		);
+	}
+
+	let content;
+	if (showAskHardwareDevice) {
+		content = selectHardwareDevice;
+	} else {
+		content = (
+			<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
+				{closebtn}
+				{connectedBox}
+			</div>
 		);
 	}
 
@@ -460,19 +582,17 @@ const NetworkConnectButton = props => {
 			{addressButton}
 			<Backdrop
 				className={btnClasses.backdrop}
-				open={buttonOpened || !networkConnected}
+				open={showAskHardwareDevice || buttonOpened || !networkConnected}
 			/>
 			<div className={btnClasses.dropdown} style={styles} ref={metamaskBoxOutsideRef}>
-				<div className={clsx(boxClasses.root, 'metamask-connected', className)} ref={metamaskBoxRef}>
-					{closebtn}
-					{connectedBox}
-				</div>
+				{content}
 			</div>
 		</>
 	);
 };
 
 NetworkConnectButton.defaultProps = {
+	addressBook: {},
 	addressChars: null,
 	addressCharsLeft: 5,
 	addressCharsRight: 5,
@@ -482,8 +602,10 @@ NetworkConnectButton.defaultProps = {
 	className: null,
 	copyPopupStyle: 'contentcopy-popover',
 	explorerUrls: null,
+	labelAddresses: 'Addresses',
 	labelAddressCopied: 'address is copied to clipboard',
 	labelCopy: 'copy address',
+	labelDisconnectHardware: 'choose other wallet type',
 	labelDisconnect: 'disconnect wallet',
 	labelNetwork: null,
 	labelChooseAddress: 'Choose your Address',
@@ -495,11 +617,13 @@ NetworkConnectButton.defaultProps = {
 	onAddressCopied: NOOP,
 	onConnect: NOOP,
 	onDisconnect: NOOP,
+	onMessage: NOOP,
 	onToggle: NOOP,
 	timeoutCopyPopup: 400,
 };
 
 NetworkConnectButton.propTypes = {
+	addressBook: PropTypes.object,
 	addressChars: PropTypes.number,
 	addressCharsLeft: PropTypes.number,
 	addressCharsRight: PropTypes.number,
@@ -509,9 +633,11 @@ NetworkConnectButton.propTypes = {
 	className: PropTypes.string,
 	copyPopupStyle: PropTypes.string,
 	explorerUrls: PropTypes.object,
+	labelAddresses: PropTypes.string,
 	labelAddressCopied: PropTypes.string,
 	labelCopy: PropTypes.string,
 	labelDisconnect: PropTypes.string,
+	labelDisconnectHardware: PropTypes.string,
 	labelNetwork: PropTypes.string,
 	labelChooseAddress: PropTypes.string,
 	labelChooseNetwork: PropTypes.string,
@@ -522,6 +648,7 @@ NetworkConnectButton.propTypes = {
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
 	onDisconnect: PropTypes.func,
+	onMessage: PropTypes.func,
 	onToggle: PropTypes.func,
 	timeoutCopyPopup: PropTypes.number,
 };
