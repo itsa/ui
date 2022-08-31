@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import { isMobile, cryptowalletCtx, cryptowalletDetection, later, webBluetoothDetection, hasWebUsb } from '@itsa.io/web3utils';
+import { isMobile, ios, cryptowalletCtx, cryptowalletDetection, later, webBluetoothDetection, hasWebUsb, websiteURL } from '@itsa.io/web3utils';
 import { Button, Link } from '@material-ui/core';
 import WalletLogo from './icons/Wallet';
 import BraveBrowserLogo from './icons/BraveBrowser';
@@ -13,6 +13,18 @@ import generateBoxStyles from './styles/box';
 
 const MOBILE_DELAY_RED_CONNECT_MESSAGE = 2000; // ms
 const DESKTOP_DELAY_RED_CONNECT_MESSAGE = 15000; // ms -> mobile takes pretty long
+
+// TODO: activate these below, as soon as they have proper device support
+const SHOW_LEDGER_USB_IOS = false; // instead of disable when not supported
+const SHOW_LEDGER_BLUETOOTH_IOS = false; // instead of disable when not supported
+const SHOW_LEDGER_USB_ANDROID = true; // instead of disable when not supported
+const SHOW_LEDGER_BLUETOOTH_ANDROID = false; // instead of disable when not supported
+
+const showLedgerButton = ios ? SHOW_LEDGER_USB_IOS : SHOW_LEDGER_USB_ANDROID;
+const showLedgerBluetoothButton = ios ? SHOW_LEDGER_BLUETOOTH_IOS : SHOW_LEDGER_BLUETOOTH_ANDROID;
+
+const METAMASK_NATIVE_APP = 'https://metamask.app.link/dapp';
+const BRAVE_NATIVE_APP = 'https://brave.app.link/dapp';
 
 const WalletConnect = props => {
 	const {
@@ -26,8 +38,6 @@ const WalletConnect = props => {
 		labelOpenInBraveMobile,
 		labelOpenInMetamaskApp,
 		labelWallet,
-		braveNativeAppUrl,
-		metamaskNativeAppUrl,
 		onConnect,
 	} = props;
 
@@ -48,8 +58,9 @@ const WalletConnect = props => {
 	const [connectionMessageDelay, setConnectionMessageDelay] = useState(false);
 	const isBraveWallet = cryptowalletDetection.isBrave;
 	const hasCryptoWallet = cryptowalletDetection.hasWallet;
-
 	const boxClasses = generateBoxStyles(props);
+	const metamaskNativeAppUrl = `${METAMASK_NATIVE_APP}/${websiteURL}`;
+	const braveNativeAppUrl = `${BRAVE_NATIVE_APP}/${websiteURL}`;
 
 	const checkBraveBrowser = async() => {
 		const isBrave = (navigator.brave && await navigator.brave.isBrave() || false); // https://stackoverflow.com/questions/36523448/how-do-i-tell-if-a-user-is-using-brave-as-their-browser
@@ -124,24 +135,32 @@ const WalletConnect = props => {
 	if (!webBluetooth) {
 		noBluetoothSupportMsg = (<div className={boxClasses.noBrowserSupport}>no browsersupport</div>);
 	}
-	const ledgerButton = (
-		<Button key="ledger" className={clsx(boxClasses.walletsContainerItem, {
-			[boxClasses.walletIconConnected]: wallet === 'ledger' && !lastClickedButton,
-		})} disabled={!hasWebUsb} onClick={handleConnect.bind(null, 'ledger')}>
-			<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
-			<p className={boxClasses.description}>Hardware Wallet <span>USB</span></p>
-			{noUsbSupportMsg}
-		</Button>
-	);
-	const ledgerBluetoothButton = (
-		<Button key="ledgerbt" className={clsx(boxClasses.walletsContainerItem, {
-			[boxClasses.walletIconConnected]: wallet === 'ledgerbt' && !lastClickedButton,
-		})} disabled={!webBluetooth} onClick={handleConnect.bind(null, 'ledgerbt')}>
-			<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
-			<p className={boxClasses.description}>Hardware Wallet <span>Bluetooth</span></p>
-			{noBluetoothSupportMsg}
-		</Button>
-	);
+
+	let ledgerButton
+	if (showLedgerButton) {
+		ledgerButton = (
+			<Button key="ledger" className={clsx(boxClasses.walletsContainerItem, {
+				[boxClasses.walletIconConnected]: wallet === 'ledger' && !lastClickedButton,
+			})} disabled={!hasWebUsb} onClick={handleConnect.bind(null, 'ledger')}>
+				<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
+				<p className={boxClasses.description}>Hardware Wallet <span>USB</span></p>
+				{noUsbSupportMsg}
+			</Button>
+		);
+	}
+
+	let ledgerBluetoothButton
+	if (showLedgerBluetoothButton) {
+		const ledgerBluetoothButton = (
+			<Button key="ledgerbt" className={clsx(boxClasses.walletsContainerItem, {
+				[boxClasses.walletIconConnected]: wallet === 'ledgerbt' && !lastClickedButton,
+			})} disabled={!webBluetooth} onClick={handleConnect.bind(null, 'ledgerbt')}>
+				<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
+				<p className={boxClasses.description}>Hardware Wallet <span>Bluetooth</span></p>
+				{noBluetoothSupportMsg}
+			</Button>
+		);
+	}
 
 	let braveButton;
 	if (!braveBrowser) {
@@ -291,8 +310,6 @@ WalletConnect.defaultProps = {
 	labelOpenInBraveMobile: 'Use Brave App',
 	labelOpenInMetamaskApp: 'Use Metamask App',
 	labelWallet: 'Wallet',
-	metamaskNativeAppUrl: 'https://metamask.app.link/dapp/wallet.itsa.io',
-	braveNativeAppUrl: 'https://brave.app.link/dapp/wallet.itsa.io',
 	onConnect: NOOP,
 };
 
@@ -307,8 +324,6 @@ WalletConnect.propTypes = {
 	labelNoMetamask: PropTypes.string,
 	labelOpenInBraveMobile: PropTypes.string,
 	labelOpenInMetamaskApp: PropTypes.string,
-	metamaskNativeAppUrl: PropTypes.string,
-	braveNativeAppUrl: PropTypes.string,
 	onConnect: PropTypes.func,
 };
 

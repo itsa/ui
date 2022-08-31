@@ -8,6 +8,9 @@ export default makeStyles(theme => {
             color: theme?.palette?.red[300] ?? 'red',
             border:`1px solid ${theme?.palette?.red[400] ?? 'red'}`,
             borderRadius: '100%',
+            [theme.breakpoints.down('sm')]: {
+                marginRight: -14,
+            },
         },
     };
 });

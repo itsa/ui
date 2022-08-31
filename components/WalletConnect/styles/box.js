@@ -113,7 +113,11 @@ export default makeStyles(theme => {
 			fontWeight: 600,
 			color: theme?.palette?.default?.contrastText,
 			opacity: 0.7,
-		},
+			[theme.breakpoints.down('sm')]: {
+				top: -5,
+				right: -4,
+			},
+	},
 		walletMainImage: {
 			width: '8rem',
 			height: '8rem',
@@ -150,17 +154,29 @@ export default makeStyles(theme => {
             fill: theme?.palette?.default?.contrastText,
             marginLeft: '0.25rem',
 			opacity: 0.7,
+            [theme.breakpoints.down('sm')]: {
+                marginLeft: '-0.8rem',
+                marginRight: '-0.1rem',
+            },
 		},
 		addressIconBrave: {
 			height: '1.5rem',
 			width: '1.5rem',
             marginLeft: '0.1rem',
 			opacity: 0.75,
+            [theme.breakpoints.down('sm')]: {
+                marginLeft: '-1.1rem',
+                marginRight: '-0.6rem',
+            },
 		},
 		addressIconMetamask: {
 			height: '1.5rem',
             marginLeft: '0.25rem',
 			opacity: 0.85,
+            [theme.breakpoints.down('sm')]: {
+                marginLeft: '-1rem',
+                marginRight: '-0.2rem',
+            },
 		},
 		ledgerIcon: {
 			width: '6rem',
