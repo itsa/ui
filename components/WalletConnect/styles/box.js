@@ -139,7 +139,10 @@ export default makeStyles(theme => {
             '& .MuiButton-label':{
 				display: 'flex',
 				flexDirection: 'column',
-			}
+			},
+			'&[disabled]': {
+				opacity: 0.5,
+			},
         },
 		walletIcon: {
 			width: '4rem',
@@ -223,13 +226,15 @@ export default makeStyles(theme => {
 			'& span': {
 				display: 'block',
 				fontSize: '0.7rem',
-				opacity: 0.7,
+				opacity: 0.8,
 			},
 		},
 		noBrowserSupport: {
 			position: 'absolute',
 			bottom: 6,
 			fontSize: '0.7rem',
+			color: theme?.palette?.primary?.contrastText || '#212121',
+			opacity: 0.8,
 		},
 		addressDescription: {
 			color: theme?.palette?.primary?.contrastText || '#000000',

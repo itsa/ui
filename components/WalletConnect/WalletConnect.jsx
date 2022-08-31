@@ -151,7 +151,7 @@ const WalletConnect = props => {
 
 	let ledgerBluetoothButton
 	if (showLedgerBluetoothButton) {
-		const ledgerBluetoothButton = (
+		ledgerBluetoothButton = (
 			<Button key="ledgerbt" className={clsx(boxClasses.walletsContainerItem, {
 				[boxClasses.walletIconConnected]: wallet === 'ledgerbt' && !lastClickedButton,
 			})} disabled={!webBluetooth} onClick={handleConnect.bind(null, 'ledgerbt')}>
