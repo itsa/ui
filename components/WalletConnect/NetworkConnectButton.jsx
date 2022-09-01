@@ -53,7 +53,6 @@ const NetworkConnectButton = props => {
 		onAddressCopied,
 		onConnect,
 		onDisconnect,
-		onMessage,
 		onToggle,
 		timeoutCopyPopup,
 		variant,
@@ -624,7 +623,6 @@ NetworkConnectButton.defaultProps = {
 	onAddressCopied: NOOP,
 	onConnect: NOOP,
 	onDisconnect: NOOP,
-	onMessage: NOOP,
 	onToggle: NOOP,
 	timeoutCopyPopup: 400,
 };
@@ -655,7 +653,6 @@ NetworkConnectButton.propTypes = {
 	onAddressCopied: PropTypes.func,
 	onConnect: PropTypes.func,
 	onDisconnect: PropTypes.func,
-	onMessage: PropTypes.func,
 	onToggle: PropTypes.func,
 	timeoutCopyPopup: PropTypes.number,
 };
