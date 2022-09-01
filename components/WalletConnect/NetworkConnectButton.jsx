@@ -59,7 +59,6 @@ const NetworkConnectButton = props => {
 	} = props;
 
 	const {
-		activated,
 		address,
 		accounts,
 		initialized,
@@ -69,7 +68,6 @@ const NetworkConnectButton = props => {
 		hardwareWallet,
 		disconnect,
 		networkConnected,
-		installed: metamaskInstalled,
 		switchToNetwork,
 		switchToAddress,
 		readHardwareAccounts,
