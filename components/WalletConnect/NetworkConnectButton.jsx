@@ -16,6 +16,7 @@ import generateStartIconConnectedStyles from './styles/start-icon-connected';
 import generateStartIconDisconnectedStyles from './styles/start-icon-disconnected';
 import generateBoxStyles from './styles/box';
 import LedgerIcon from './icons/LedgerIcon';
+import LedgerIconWide from './icons/Ledger';
 import BraveIcon from './icons/BraveBrowser';
 import MetamaskIcon from './icons/Metamask';
 import generateSelectDeviceStyles from './styles/select-device';
@@ -435,10 +436,12 @@ const NetworkConnectButton = props => {
 	}
 
 	let mainLogo;
-	if (wallet === 'brave') {
+	if ((wallet === 'ledger') || (wallet === 'ledgerbt')) {
+		mainLogo = <LedgerIconWide className={boxClasses.ledgerIconConnected} />;
+	} else if (wallet === 'brave') {
 		mainLogo = <BraveLogo className={boxClasses.networkIconConnected} />;
 	} else {
-		mainLogo = <MetamaskLogo className={boxClasses.networkIconConnected} />;
+			mainLogo = <MetamaskLogo className={boxClasses.networkIconConnected} />;
 	}
 
 	let buttonDisconnect;

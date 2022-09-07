@@ -197,6 +197,13 @@ export default makeStyles(theme => {
 			verticalAlign: 'middle',
 			marginBottom: '2rem',
 		},
+		ledgerIconConnected: {
+			width: 140,
+			minHeight: 64,
+			verticalAlign: 'middle',
+			marginBottom: '2rem',
+            fill: theme?.palette?.default?.contrastText,
+		},
 		title: {
 			fontWeight: 'bold',
 			fontSize: '1.5rem',
