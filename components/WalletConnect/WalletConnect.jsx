@@ -14,14 +14,24 @@ import generateBoxStyles from './styles/box';
 const MOBILE_DELAY_RED_CONNECT_MESSAGE = 2000; // ms
 const DESKTOP_DELAY_RED_CONNECT_MESSAGE = 15000; // ms -> mobile takes pretty long
 
-// TODO: activate these below, as soon as they have proper device support
+const SHOW_LEDGER_USB_DESKTOP = true;
+const SHOW_LEDGER_BLUETOOTH_DESKTOP = true;
 const SHOW_LEDGER_USB_IOS = false; // instead of disable when not supported
 const SHOW_LEDGER_BLUETOOTH_IOS = false; // instead of disable when not supported
-const SHOW_LEDGER_USB_ANDROID = true; // instead of disable when not supported
-const SHOW_LEDGER_BLUETOOTH_ANDROID = false; // instead of disable when not supported
+const SHOW_LEDGER_USB_ANDROID = true;
+const SHOW_LEDGER_BLUETOOTH_ANDROID = true;
 
-const showLedgerButton = ios ? SHOW_LEDGER_USB_IOS : SHOW_LEDGER_USB_ANDROID;
-const showLedgerBluetoothButton = ios ? SHOW_LEDGER_BLUETOOTH_IOS : SHOW_LEDGER_BLUETOOTH_ANDROID;
+let showLedgerButton;
+let showLedgerBluetoothButton;
+
+if (isMobile) {
+	showLedgerButton = ios ? SHOW_LEDGER_USB_IOS : SHOW_LEDGER_USB_ANDROID;
+	showLedgerBluetoothButton = ios ? SHOW_LEDGER_BLUETOOTH_IOS : SHOW_LEDGER_BLUETOOTH_ANDROID;
+} else {
+	showLedgerButton = SHOW_LEDGER_USB_DESKTOP;
+	showLedgerBluetoothButton = SHOW_LEDGER_BLUETOOTH_DESKTOP;
+}
+
 
 const METAMASK_NATIVE_APP = 'https://metamask.app.link/dapp';
 const BRAVE_NATIVE_APP = 'https://brave.app.link/dapp';
@@ -52,6 +62,7 @@ const WalletConnect = props => {
 	const [braveBrowser, setBraveBrowser] = useState();
 	const [helpText, setHelpText] = useState();
 	const [webBluetooth, setWebBluetooth] = useState(false);
+	const [webUsb, setWebUsb] = useState(false);
 	const [lastClickedButton, setLastClickedButton] = useState();
 	const isMounted = useRef(false);
 	const timer = useRef();
@@ -70,13 +81,18 @@ const WalletConnect = props => {
 	}
 
 	const checkWebBluetooth = async() => {
-		const hasBluetooth = await webBluetoothDetection();
+		const hasBluetooth = await webBluetoothDetection;
 		setWebBluetooth(hasBluetooth);
+	};
+
+	const checkWebUsb = () => {
+		setWebUsb(hasWebUsb);
 	};
 
 	useEffect(() => {
 		isMounted.current = true;
 		checkBraveBrowser();
+		checkWebUsb();
 		checkWebBluetooth();
 		return () => {
 			isMounted.current = false;
@@ -129,7 +145,7 @@ const WalletConnect = props => {
 
 	let noUsbSupportMsg;
 	let noBluetoothSupportMsg;
-	if (!hasWebUsb) {
+	if (!webUsb) {
 		noUsbSupportMsg = (<div className={boxClasses.noBrowserSupport}>no browsersupport</div>);
 	}
 	if (!webBluetooth) {
@@ -141,7 +157,7 @@ const WalletConnect = props => {
 		ledgerButton = (
 			<Button key="ledger" className={clsx(boxClasses.walletsContainerItem, {
 				[boxClasses.walletIconConnected]: wallet === 'ledger' && !lastClickedButton,
-			})} disabled={!hasWebUsb} onClick={handleConnect.bind(null, 'ledger')}>
+			})} disabled={!webUsb} onClick={handleConnect.bind(null, 'ledger')}>
 				<LedgerLogo className={clsx(boxClasses.walletIcon, boxClasses.ledgerIcon)} />
 				<p className={boxClasses.description}>Hardware Wallet <span>USB</span></p>
 				{noUsbSupportMsg}

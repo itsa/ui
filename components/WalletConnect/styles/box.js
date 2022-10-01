@@ -282,6 +282,7 @@ export default makeStyles(theme => {
 			width: '7.5rem',
 			overflow: 'hidden',
 			textOverflow: 'ellipsis',
+			whiteSpace: 'nowrap',
 		},
 		btn: {
 			marginTop: '1rem',
