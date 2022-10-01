@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { cloneDeep } from 'lodash';
 import { cryptowalletCtx, copyToClipboard, managedPromise } from '@itsa.io/web3utils';
 import { Button, Link, Box, Select, MenuItem, List, ListItem, ListItemIcon, ListItemText, IconButton, Popover, Backdrop, Avatar as TokenImg } from '@material-ui/core';
-import { FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, FiberManualRecord as FiberManualRecordIcon, ArrowDropDown as ArrowDropDownIcon, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon, Close as CloseIcon } from '@material-ui/icons';
+import { Dns as DnsIcon, FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, ArrowDropDown as ArrowDropDownIcon, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon, Close as CloseIcon } from '@material-ui/icons';
 import MetamaskLogo from './icons/Metamask';
 import BraveLogo from './icons/BraveBrowser';
 import { shortenAddress, safeClasses, NOOP, usesMobileAppWallet } from './helpers';
@@ -523,7 +523,7 @@ const NetworkConnectButton = props => {
 			endIcon = <ArrowDropDownIcon classes={safeClasses(endIconClasses)} />;
 		}
 	}
-	startIcon = <FiberManualRecordIcon classes={safeClasses(startIconClasses)} />;
+	startIcon = <DnsIcon classes={safeClasses(startIconClasses)} />;
 
 	const handleCloseIcon = e => {
 		closedFromOutside.current = false;
