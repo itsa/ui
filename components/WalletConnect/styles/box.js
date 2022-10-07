@@ -24,6 +24,9 @@ export default makeStyles(theme => {
 				flexDirection: 'row',
 			},
         },
+		ledgerIconContainer: {
+			position: 'relative',
+		},
 		buttonRow: {
 			display: 'flex',
 			flexDirection: 'row',
@@ -107,17 +110,27 @@ export default makeStyles(theme => {
 		bluetoothMarker: {
 			position: 'absolute',
 			zIndex: 1,
-			right: 2,
-			top: -3,
-			fontSize: 10,
+			right: 6,
+			top: -2,
+			fontSize: 9,
 			fontWeight: 600,
 			color: theme?.palette?.default?.contrastText,
 			opacity: 0.7,
 			[theme.breakpoints.down('sm')]: {
-				top: -5,
-				right: -4,
+				top: 9,
+				right: 2,
+				fontSize: 8,
 			},
-	},
+        },
+		bluetoothMarkerBig: {
+			position: 'absolute',
+			zIndex: 1,
+			right: 6,
+			top: 11,
+			fontSize: 11,
+			fontWeight: 600,
+			color: theme?.palette?.primary?.contrastText || '#212121',
+		},
 		walletMainImage: {
 			width: '8rem',
 			height: '8rem',
@@ -126,7 +139,7 @@ export default makeStyles(theme => {
 			[theme.breakpoints.down('sm')]: {
 				display: 'none',
 			},
-	},
+        },
         walletsContainerItem: {
 			padding: theme.spacing(2),
 			borderRadius: 12,
