@@ -437,10 +437,14 @@ const NetworkConnectButton = props => {
 
 	let mainLogo;
 	if ((wallet === 'ledger') || (wallet === 'ledgerbt')) {
+		let btMark;
+		if (wallet === 'ledgerbt') {
+			btMark = <div className={boxClasses.bluetoothMarkerBig}>BT</div>;
+		}
 		mainLogo = (
 			<div className={boxClasses.ledgerIconContainer}>
 				<LedgerIconWide className={boxClasses.ledgerIconConnected} />
-				<div className={boxClasses.bluetoothMarkerBig}>BT</div>
+				{btMark}
 			</div>
 		);
 	} else if (wallet === 'brave') {

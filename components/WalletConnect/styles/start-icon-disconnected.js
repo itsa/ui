@@ -4,6 +4,7 @@ export default makeStyles(theme => {
     return {
         root: {
             color: theme?.palette?.red[300] ?? 'red',
+            marginRight: 4,
         },
     };
 });
