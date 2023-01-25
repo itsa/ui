@@ -4,7 +4,6 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { isMobile, ios, cryptowalletCtx, cryptowalletDetection, later, webBluetoothDetection, hasWebUsb, websiteURL } from '@itsa.io/web3utils';
 import { Button, Link } from '@material-ui/core';
-import WalletLogo from './icons/Wallet';
 import BraveBrowserLogo from './icons/BraveBrowser';
 import MetamaskLogo from './icons/Metamask';
 import LedgerLogo from './icons/Ledger';
@@ -298,7 +297,6 @@ const WalletConnect = props => {
 
 	return (
 		<div className={clsx(boxClasses.root, className)}>
-			<WalletLogo className={boxClasses.walletMainImage} />
 			<p className={boxClasses.title}>{labelTitle}</p>
 			<div className={clsx(boxClasses.walletsContainer, {
 				[boxClasses.hidden]: typeof braveBrowser !== 'boolean', // needs iinitialization
