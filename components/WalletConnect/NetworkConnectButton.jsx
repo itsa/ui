@@ -205,6 +205,7 @@ const NetworkConnectButton = props => {
 
 	const handleNetworkChange = async e => {
 		const value = e.target.value;
+		const prevNetwork = selectedNetwork;
 		setSelectNetwork(value);
 		try {
 			await switchToNetwork(value);
@@ -219,7 +220,7 @@ const NetworkConnectButton = props => {
 			}
 		}
 		catch (err) {
-			console.error(err);
+			setSelectNetwork(prevNetwork);
 		}
 	}
 
