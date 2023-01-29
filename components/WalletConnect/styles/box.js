@@ -129,7 +129,7 @@ export default makeStyles(theme => {
 			top: 11,
 			fontSize: 11,
 			fontWeight: 600,
-			color: theme?.palette?.primary?.contrastText || '#212121',
+			color: theme?.palette?.text?.primary || '#212121',
 		},
 		walletMainImage: {
 			width: '8rem',
@@ -144,10 +144,10 @@ export default makeStyles(theme => {
 			padding: theme.spacing(2),
 			borderRadius: 12,
 			backgroundColor: theme.palette.default.light,
-			border: `1px solid ${alpha(theme.palette.primary.light, 0.1)}`,
+			// border: `1px solid ${alpha(theme.palette.primary.light, 0.1)}`,
 			'&:hover':{
-				backgroundColor: theme.palette.default.light,
-				borderColor: theme.palette.secondary.dark,
+				// backgroundColor: theme.palette.default.light,
+				// borderColor: theme.palette.secondary.dark,
 			},
             '& .MuiButton-label':{
 				display: 'flex',
@@ -238,10 +238,10 @@ export default makeStyles(theme => {
 		titleNetwork: {
 			fontSize: '1rem',
 			marginBottom: theme.spacing(1),
-			color: theme?.palette?.primary?.contrastText || '#212121',
+			color: theme?.palette?.text?.primary || '#212121',
 		},
 		description: {
-			color: theme?.palette?.primary?.contrastText || '#212121',
+			color: theme?.palette?.text?.primary || '#212121',
 			fontSize: '1rem',
 			'& span': {
 				display: 'block',
@@ -253,11 +253,11 @@ export default makeStyles(theme => {
 			position: 'absolute',
 			bottom: 6,
 			fontSize: '0.7rem',
-			color: theme?.palette?.primary?.contrastText || '#212121',
+			color: theme?.palette?.text?.primary || '#212121',
 			opacity: 0.8,
 		},
 		addressDescription: {
-			color: theme?.palette?.primary?.contrastText || '#000000',
+			color: theme?.palette?.text?.primary || '#000000',
 			fontSize: '1rem!important',
 			marginTop: '1.5rem',
 			marginBottom: '0.25rem',
@@ -275,7 +275,7 @@ export default makeStyles(theme => {
 		iconButton: {
 		},
 		addressContainer: {
-			color: theme?.palette?.primary?.contrastText || '#000000',
+			color: theme?.palette?.text?.primary || '#000000',
 			marginTop: '1rem',
 			display: 'flex',
 			alignItems: 'center',
@@ -283,12 +283,12 @@ export default makeStyles(theme => {
 		buttonStyleBtn: {
 			// className that is set on the button (buttonStyle); can be overruled by user
 			marginTop: '1rem',
-			backgroundColor: theme?.palette?.primary?.light,
+			// backgroundColor: theme?.palette?.primary?.light,
 			color: '#000000',
 			letterSpacing: '1.25px',
 			padding: '6px 16px',
 			'&:hover': {
-				backgroundColor: theme?.palette?.secondary?.light,
+				// backgroundColor: theme?.palette?.secondary?.light,
 			},
 		},
 		buttonStyleBtnLabel: {
@@ -310,12 +310,12 @@ export default makeStyles(theme => {
 		},
 		btnButtonStyle: {
 			width: '100%',
-			backgroundColor: theme?.palette?.primary?.light,
-			color: '#000000',
-			letterSpacing: '1.25px',
-			padding: '6px 16px',
+			// backgroundColor: theme?.palette?.primary?.light,
+			// color: '#000000',
+			// letterSpacing: '1.25px',
+			// padding: '6px 16px',
 			'&:hover': {
-				backgroundColor: theme?.palette?.secondary?.light,
+				// backgroundColor: theme?.palette?.secondary?.light,
 			},
 		},
 		downloadDescription: {
@@ -326,12 +326,12 @@ export default makeStyles(theme => {
 				marginTop: '0.1rem',
 			},
 			'& a': {
-				color: theme?.palette?.primary?.contrastText || '#212121',
+				color: theme?.palette?.text?.primary || '#212121',
 				marginLeft: '0.5rem',
 			},
 			'& a:hover': {
 				textDecoration: 'none',
-				color: theme?.palette?.primary?.contrastText || '#000000',
+				color: theme?.palette?.text?.primary || '#000000',
 			},
 		},
 		copied: {
@@ -344,11 +344,11 @@ export default makeStyles(theme => {
 			justifyContent: 'space-evenly',
 			margin: '1.5rem 0 1rem',
 			'& a': {
-				color: theme?.palette?.primary?.contrastText || '#212121',
+				color: theme?.palette?.text?.primary || '#212121',
 			},
 			'& a:hover': {
 				textDecoration: 'none',
-				color: theme?.palette?.primary?.contrastText || '#000000',
+				color: theme?.palette?.text?.primary || '#000000',
 			},
 			'& > *': {
 				margin: '0 0.5rem',
@@ -366,7 +366,7 @@ export default makeStyles(theme => {
 			},
 		},
 		iconBoxInnerDisabled: {
-			color: `${alpha(theme?.palette?.primary?.contrastText || '#212121', 0.3)}`,
+			color: `${alpha(theme?.palette?.text?.primary || '#212121', 0.3)}`,
 			cursor: 'default',
 		},
 		select: {
@@ -376,7 +376,7 @@ export default makeStyles(theme => {
 		selectRoot: {
 			paddingTop: '0.6rem',
 			paddingBottom: '0.6rem',
-			color: theme?.palette?.primary?.contrastText,
+			color: theme?.palette?.text?.primary,
 		},
 		listIcons: {
 			width: '100%',
@@ -386,14 +386,14 @@ export default makeStyles(theme => {
 			},
 		},
 		listItem: {
-			border: `1px solid ${alpha(theme.palette.primary.light, 0.2)}`,
+		    border: `1px solid ${theme.palette.border.light}`,
 			borderRadius: 6,
 		},
 		listItemAddress: {
 			height: '3em',
 		},
 		listItemActive: {
-			backgroundColor: alpha(theme.palette.secondary.main, 0.85),
+			backgroundColor: theme.palette.background.main,
 		},
 		networkIcon: {
 			overflow: 'inherit',

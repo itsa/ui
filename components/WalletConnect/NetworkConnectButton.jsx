@@ -459,6 +459,7 @@ const NetworkConnectButton = props => {
 		buttonDisconnect = (
 			<Button
 				className={classNameButton}
+				variant="contained"
 				disableElevation
 				onClick={handleDisconnect}
 			>
