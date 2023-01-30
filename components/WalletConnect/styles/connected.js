@@ -22,7 +22,6 @@ export default makeStyles(theme => {
 			position: 'absolute',
 			top: theme.spacing(1),
 			right: theme.spacing(1),
-			color: theme?.palette?.grey[50] || '#FFFFFF',
 		},
 		backdrop: {
 			backgroundColor: `${alpha(theme.palette.common.black, 0.5)}!important`,

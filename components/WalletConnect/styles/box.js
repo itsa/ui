@@ -31,7 +31,6 @@ export default makeStyles(theme => {
 			display: 'flex',
 			flexDirection: 'row',
 			gap: '1rem',
-			// margin: theme.spacing(2, 0),
 		},
 		standardButtons: {
 			'& button': {
@@ -144,11 +143,6 @@ export default makeStyles(theme => {
 			padding: theme.spacing(2),
 			borderRadius: 12,
 			backgroundColor: theme.palette.default.light,
-			// border: `1px solid ${alpha(theme.palette.primary.light, 0.1)}`,
-			'&:hover':{
-				// backgroundColor: theme.palette.default.light,
-				// borderColor: theme.palette.secondary.dark,
-			},
             '& .MuiButton-label':{
 				display: 'flex',
 				flexDirection: 'column',
@@ -283,13 +277,9 @@ export default makeStyles(theme => {
 		buttonStyleBtn: {
 			// className that is set on the button (buttonStyle); can be overruled by user
 			marginTop: '1rem',
-			// backgroundColor: theme?.palette?.primary?.light,
 			color: '#000000',
 			letterSpacing: '1.25px',
 			padding: '6px 16px',
-			'&:hover': {
-				// backgroundColor: theme?.palette?.secondary?.light,
-			},
 		},
 		buttonStyleBtnLabel: {
 			width: '7.5rem',
@@ -310,13 +300,6 @@ export default makeStyles(theme => {
 		},
 		btnButtonStyle: {
 			width: '100%',
-			// backgroundColor: theme?.palette?.primary?.light,
-			// color: '#000000',
-			// letterSpacing: '1.25px',
-			// padding: '6px 16px',
-			'&:hover': {
-				// backgroundColor: theme?.palette?.secondary?.light,
-			},
 		},
 		downloadDescription: {
 			marginTop: '1.5rem',
