@@ -1,7 +1,7 @@
 {
   "name": "@itsa.io/ui",
   "license": "BSD-3-Clause",
-  "version": "0.3.23",
+  "version": "0.3.24",
   "description": "ITSA UI library",
   "main": "components/index.js",
   "keywords": [
