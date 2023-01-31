@@ -14,14 +14,14 @@ export default makeStyles(theme => {
 		},
         walletsContainer: {
 			display: 'flex',
-			flexDirection: 'column',
+			flexDirection: 'row',
 			gap: '1rem',
 			margin: theme.spacing(2, 0),
 			'& > a:hover': {
 				textDecoration: 'none',
 			},
-			[theme.breakpoints.up('sm')]: {
-				flexDirection: 'row',
+			[theme.breakpoints.down('sm')]: {
+				flexDirection: 'column',
 			},
         },
 		ledgerIconContainer: {
