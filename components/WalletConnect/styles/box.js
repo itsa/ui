@@ -282,7 +282,6 @@ export default makeStyles(theme => {
 			padding: '6px 16px',
 		},
 		buttonStyleBtnLabel: {
-			width: '7.5rem',
 			overflow: 'hidden',
 			textOverflow: 'ellipsis',
 			whiteSpace: 'nowrap',
