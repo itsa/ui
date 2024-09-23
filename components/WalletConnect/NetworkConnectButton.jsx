@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { cloneDeep } from 'lodash';
 import { cryptowalletCtx, copyToClipboard, managedPromise } from '@itsa.io/web3utils';
+import HD_WALLETS from './hdWallets.json';
 import { Button, Link, Box, Select, MenuItem, List, ListItem, ListItemIcon, ListItemText, IconButton, Popover, Backdrop, Avatar as TokenImg } from '@material-ui/core';
 import { Dns as DnsIcon, FileCopyOutlined as FileCopyOutlinedIcon, LaunchOutlined as LaunchOutlinedIcon, ArrowDropDown as ArrowDropDownIcon, ArrowLeft as ArrowLeftIcon, ArrowRight as ArrowRightIcon, Close as CloseIcon } from '@material-ui/icons';
 import MetamaskLogo from './icons/Metamask';
@@ -209,8 +210,12 @@ const NetworkConnectButton = props => {
 		setSelectNetwork(value);
 		try {
 			await switchToNetwork(value);
-			if (hardwareWallet && accounts.length < (addressPage + 1) * 5) {
-				readHardwareAccounts(value, (addressPage + 1) * 5);
+			if (hardwareWallet) {
+				if (HD_WALLETS[value]) {
+					readHardwareAccounts(value, 1);
+				} else if (accounts.length < (addressPage + 1) * 5) {
+					readHardwareAccounts(value, (addressPage + 1) * 5);
+				}
 			}
 			if (!hardwareWallet || address) {
 				closedFromOutside.current = false;
@@ -267,7 +272,7 @@ const NetworkConnectButton = props => {
 
 	useEffect(() => {
 		buttonOpenedRef.current = buttonOpened;
-		if (buttonOpened && hardwareWallet && chainId  && accounts.length < (addressPage + 1) * 5) {
+		if (buttonOpened && hardwareWallet && chainId && !HD_WALLETS[chainId] && accounts.length < (addressPage + 1) * 5) {
 			readHardwareAccounts(chainId, (addressPage + 1) * 5);
 		}
 	}, [buttonOpened]);
